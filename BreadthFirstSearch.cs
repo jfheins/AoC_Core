@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Core
 {
@@ -36,15 +37,26 @@ namespace Core
 			_expander = expander;
 		}
 
-		public TNode[] Search(TNode initialNode,
+		public TNode[] FindFirst(TNode initialNode,
 			Func<TNode, bool> targetPredicate,
 			ProgressReporterCallback progressReporter = null)
 		{
+			var result = FindAll(initialNode, targetPredicate, progressReporter, 1);
+			return result.FirstOrDefault();
+		}
+
+		public IList<TNode[]> FindAll(TNode initialNode,
+			Func<TNode, bool> targetPredicate,
+			ProgressReporterCallback progressReporter = null,
+			int minResults = int.MaxValue)
+		{
 			var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
-			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) {new NodeWithPredecessor(initialNode)};
+			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { new NodeWithPredecessor(initialNode) };
+
+			var results = new List<TNode[]>();
 
 			if (targetPredicate(initialNode))
-				return new[] { initialNode };
+				results.Add(new[] { initialNode });
 
 			while (nextNodes.Count > 0)
 			{
@@ -61,10 +73,13 @@ namespace Core
 
 				foreach (var node in nextNodes)
 					if (targetPredicate(node.Current))
-						return node.GetHistory().ToArray();
+						results.Add(node.GetHistory().ToArray());
+
+				if (results.Count >= minResults)
+					break;
 			}
 
-			return null;
+			return results;
 		}
 
 		private class NodeComparer : EqualityComparer<NodeWithPredecessor>
