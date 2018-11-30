@@ -62,8 +62,7 @@ namespace Core
 			{
 				new DijkstraNode(initialNode)
 			};
-			var nextNodes = new System.Collections.Generic.HashSet<DijkstraNode>()
-				{new DijkstraNode(initialNode)};
+			var nextNodes = new System.Collections.Generic.HashSet<DijkstraNode> {new DijkstraNode(initialNode)};
 
 			var results = new List<IPath<TNode, TEdge>>();
 

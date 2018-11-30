@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using JetBrains.Annotations;
 
 namespace Core
@@ -20,8 +19,8 @@ namespace Core
 		/// <param name="expander">Callback to get the possible edges</param>
 		/// <param name="combiner">Callback to combine a source node and an edge to a (possibly new) node. May return null.</param>
 		public BreadthFirstSearch(IEqualityComparer<TNode> comparer,
-			Func<TNode, IEnumerable<TEdge>> expander,
-			Func<TNode, TEdge, TNode> combiner)
+								  Func<TNode, IEnumerable<TEdge>> expander,
+								  Func<TNode, TEdge, TNode> combiner)
 		{
 			_comparer = new NodeComparer(comparer);
 			_expander = node => expander(node).Select(edge => combiner(node, edge)).Where(x => x != null);
@@ -38,23 +37,23 @@ namespace Core
 			_expander = expander;
 		}
 
-        [CanBeNull]
+		[CanBeNull]
 		public IPath<TNode, TEdge> FindFirst(TNode initialNode,
-			Func<TNode, bool> targetPredicate,
-			ProgressReporterCallback progressReporter = null)
+											 Func<TNode, bool> targetPredicate,
+											 ProgressReporterCallback progressReporter = null)
 		{
 			var result = FindAll(initialNode, targetPredicate, progressReporter, 1);
 			return result.FirstOrDefault();
 		}
 
-        [NotNull]
+		[NotNull]
 		public IList<IPath<TNode, TEdge>> FindAll(TNode initialNode,
-			Func<TNode, bool> targetPredicate,
-			ProgressReporterCallback progressReporter = null,
-			int minResults = int.MaxValue)
+												  Func<TNode, bool> targetPredicate,
+												  ProgressReporterCallback progressReporter = null,
+												  int minResults = int.MaxValue)
 		{
 			var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
-			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { new NodeWithPredecessor(initialNode) };
+			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) {new NodeWithPredecessor(initialNode)};
 
 			var results = new List<IPath<TNode, TEdge>>();
 
@@ -87,15 +86,11 @@ namespace Core
 
 		private class BfsPath : IPath<TNode, TEdge>
 		{
-			public TNode Target { get; }
-			public int Length { get; }
-			public TNode[] Steps { get; }
-
 			public BfsPath(TNode singleNode)
 			{
 				Target = singleNode;
 				Length = 0;
-				Steps = new[] { singleNode };
+				Steps = new[] {singleNode};
 			}
 
 			public BfsPath(NodeWithPredecessor target)
@@ -104,6 +99,10 @@ namespace Core
 				Steps = target.GetHistory().Reverse().ToArray();
 				Length = Steps.Length - 1;
 			}
+
+			public TNode Target { get; }
+			public int Length { get; }
+			public TNode[] Steps { get; }
 		}
 
 		private class NodeComparer : EqualityComparer<NodeWithPredecessor>
