@@ -362,10 +362,7 @@ namespace Core.Combinatorics
 			/// <summary>
 			///     Cleans up non-managed resources, of which there are none used here.
 			/// </summary>
-			public void Dispose()
-			{
-				;
-			}
+			public void Dispose() { }
 
 			#endregion
 

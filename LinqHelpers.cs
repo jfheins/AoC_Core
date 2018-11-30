@@ -77,6 +77,7 @@ namespace Core
 				while (e.MoveNext())
 				{
 					var remaining = chunkSize; // elements remaining in the current chunk
+					// ReSharper disable once AccessToDisposedClosure
 					var innerMoveNext = new Func<bool>(() => --remaining > 0 && e.MoveNext());
 
 					yield return e.GetChunk(innerMoveNext);

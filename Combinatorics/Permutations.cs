@@ -436,6 +436,7 @@ namespace Core.Combinatorics
 		{
 			public int Compare(U x, U y)
 			{
+				// ReSharper disable once PossibleNullReferenceException
 				return ((IComparable<U>) x).CompareTo(y);
 			}
 		}

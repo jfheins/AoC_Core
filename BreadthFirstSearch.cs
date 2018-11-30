@@ -38,7 +38,7 @@ namespace Core
 		}
 
 		[CanBeNull]
-		public IPath<TNode, TEdge> FindFirst(TNode initialNode,
+		public IPath<TNode> FindFirst(TNode initialNode,
 											 Func<TNode, bool> targetPredicate,
 											 ProgressReporterCallback progressReporter = null)
 		{
@@ -47,7 +47,7 @@ namespace Core
 		}
 
 		[NotNull]
-		public IList<IPath<TNode, TEdge>> FindAll(TNode initialNode,
+		public IList<IPath<TNode>> FindAll(TNode initialNode,
 												  Func<TNode, bool> targetPredicate,
 												  ProgressReporterCallback progressReporter = null,
 												  int minResults = int.MaxValue)
@@ -55,7 +55,7 @@ namespace Core
 			var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
 			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) {new NodeWithPredecessor(initialNode)};
 
-			var results = new List<IPath<TNode, TEdge>>();
+			var results = new List<IPath<TNode>>();
 
 			if (targetPredicate(initialNode))
 				results.Add(new BfsPath(initialNode));
@@ -84,7 +84,7 @@ namespace Core
 			return results;
 		}
 
-		private class BfsPath : IPath<TNode, TEdge>
+		private class BfsPath : IPath<TNode>
 		{
 			public BfsPath(TNode singleNode)
 			{

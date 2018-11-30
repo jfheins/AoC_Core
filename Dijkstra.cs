@@ -10,19 +10,14 @@ namespace Core
 	{
 		public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
-		private const int blockSize = 8;
-
 		private readonly Func<TNode, IEnumerable<(TNode node, uint cost)>> _expander;
 
 		/// <summary>
-		///     Prepares a breadth first search.
+		///     Prepares a Dijkstra search.
 		/// </summary>
-		/// <param name="comparer">Comparison function that determines node equality</param>
 		/// <param name="expander">Callback to get the possible edges</param>
 		/// <param name="combiner">Callback to combine a source node and an edge to a (possibly new) node. May return null.</param>
-		/// <param name="measure">Function to measure the Edges</param>
-		public DijkstraSearch(IEqualityComparer<TNode> comparer,
-							  Func<TNode, IEnumerable<(TEdge edge, uint cost)>> expander,
+		public DijkstraSearch(Func<TNode, IEnumerable<(TEdge edge, uint cost)>> expander,
 							  Func<TNode, TEdge, TNode> combiner)
 		{
 			_expander = node =>
@@ -31,18 +26,16 @@ namespace Core
 		}
 
 		/// <summary>
-		///     Prepares a breadth first search.
+		///     Prepares a Dijkstra search.
 		/// </summary>
-		/// <param name="comparer">Comparison function that determines node equality</param>
 		/// <param name="expander">Callback to get the possible nodes from a source node</param>
-		public DijkstraSearch(IEqualityComparer<TNode> comparer,
-							  Func<TNode, IEnumerable<(TNode node, uint cost)>> expander)
+		public DijkstraSearch(Func<TNode, IEnumerable<(TNode node, uint cost)>> expander)
 		{
 			_expander = expander;
 		}
 
 		[CanBeNull]
-		public IPath<TNode, TEdge> FindFirst(TNode initialNode,
+		public IPath<TNode> FindFirst(TNode initialNode,
 											 Func<TNode, bool> targetPredicate,
 											 ProgressReporterCallback progressReporter = null)
 		{
@@ -51,7 +44,7 @@ namespace Core
 		}
 
 		[NotNull]
-		public System.Collections.Generic.IList<IPath<TNode, TEdge>> FindAll(TNode initialNode,
+		public System.Collections.Generic.IList<IPath<TNode>> FindAll(TNode initialNode,
 																			 Func<TNode, bool> targetPredicate,
 																			 ProgressReporterCallback progressReporter =
 																				 null,
@@ -64,7 +57,7 @@ namespace Core
 			};
 			var nextNodes = new System.Collections.Generic.HashSet<DijkstraNode> {new DijkstraNode(initialNode)};
 
-			var results = new List<IPath<TNode, TEdge>>();
+			var results = new List<IPath<TNode>>();
 
 			if (targetPredicate(initialNode))
 				results.Add(new DijkstraPath(initialNode));
@@ -94,7 +87,7 @@ namespace Core
 			return results;
 		}
 
-		private class DijkstraPath : IPath<TNode, TEdge>
+		private class DijkstraPath : IPath<TNode>
 		{
 			public DijkstraPath(TNode singleNode)
 			{
@@ -148,23 +141,6 @@ namespace Core
 					yield return pointer.Current;
 					pointer = pointer.Predecessor;
 				} while (pointer != null);
-			}
-		}
-
-		private class EdgeWithWeight : IComparable<EdgeWithWeight>
-		{
-			public EdgeWithWeight(TEdge original, double weight)
-			{
-				Original = original;
-				Weight = weight;
-			}
-
-			public TEdge Original { get; }
-			public double Weight { get; }
-
-			public int CompareTo(EdgeWithWeight other)
-			{
-				return Weight.CompareTo(other.Weight);
 			}
 		}
 	}

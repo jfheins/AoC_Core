@@ -1,6 +1,6 @@
 ﻿namespace Core
 {
-	public interface IPath<out TNode, out TEdge>
+	public interface IPath<out TNode>
 	{
 		TNode Target { get; }
 		int Length { get; }
