@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using JetBrains.Annotations;
 
 namespace Core
 {
@@ -37,6 +38,7 @@ namespace Core
 			_expander = expander;
 		}
 
+        [CanBeNull]
 		public TNode[] FindFirst(TNode initialNode,
 			Func<TNode, bool> targetPredicate,
 			ProgressReporterCallback progressReporter = null)
@@ -45,6 +47,7 @@ namespace Core
 			return result.FirstOrDefault();
 		}
 
+        [NotNull]
 		public IList<TNode[]> FindAll(TNode initialNode,
 			Func<TNode, bool> targetPredicate,
 			ProgressReporterCallback progressReporter = null,
