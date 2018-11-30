@@ -39,7 +39,7 @@ namespace Core
 		}
 
         [CanBeNull]
-		public TNode[] FindFirst(TNode initialNode,
+		public IPath<TNode, TEdge> FindFirst(TNode initialNode,
 			Func<TNode, bool> targetPredicate,
 			ProgressReporterCallback progressReporter = null)
 		{
@@ -48,7 +48,7 @@ namespace Core
 		}
 
         [NotNull]
-		public IList<TNode[]> FindAll(TNode initialNode,
+		public IList<IPath<TNode, TEdge>> FindAll(TNode initialNode,
 			Func<TNode, bool> targetPredicate,
 			ProgressReporterCallback progressReporter = null,
 			int minResults = int.MaxValue)
@@ -56,10 +56,10 @@ namespace Core
 			var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
 			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { new NodeWithPredecessor(initialNode) };
 
-			var results = new List<TNode[]>();
+			var results = new List<IPath<TNode, TEdge>>();
 
 			if (targetPredicate(initialNode))
-				results.Add(new[] { initialNode });
+				results.Add(new BfsPath(initialNode));
 
 			while (nextNodes.Count > 0)
 			{
@@ -76,13 +76,34 @@ namespace Core
 
 				foreach (var node in nextNodes)
 					if (targetPredicate(node.Current))
-						results.Add(node.GetHistory().ToArray());
+						results.Add(new BfsPath(node));
 
 				if (results.Count >= minResults)
 					break;
 			}
 
 			return results;
+		}
+
+		private class BfsPath : IPath<TNode, TEdge>
+		{
+			public TNode Target { get; }
+			public int Length { get; }
+			public TNode[] Steps { get; }
+
+			public BfsPath(TNode singleNode)
+			{
+				Target = singleNode;
+				Length = 0;
+				Steps = new[] { singleNode };
+			}
+
+			public BfsPath(NodeWithPredecessor target)
+			{
+				Target = target.Current;
+				Steps = target.GetHistory().Reverse().ToArray();
+				Length = Steps.Length - 1;
+			}
 		}
 
 		private class NodeComparer : EqualityComparer<NodeWithPredecessor>
