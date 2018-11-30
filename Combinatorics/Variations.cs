@@ -51,10 +51,6 @@ namespace Core.Combinatorics
 						myMap.Add(int.MaxValue);
 				myPermutations = new Permutations<int>(myMap);
 			}
-			else
-			{
-				; // myPermutations isn't used.
-			}
 		}
 
 		#endregion
@@ -64,10 +60,7 @@ namespace Core.Combinatorics
 		/// <summary>
 		///     No default constructor, must provided a list of values and size.
 		/// </summary>
-		protected Variations()
-		{
-			;
-		}
+		protected Variations() { }
 
 		/// <summary>
 		///     Create a variation set from the indicated list of values.
@@ -234,10 +227,7 @@ namespace Core.Combinatorics
 			/// <summary>
 			///     Cleans up non-managed resources, of which there are none used here.
 			/// </summary>
-			public void Dispose()
-			{
-				;
-			}
+			public void Dispose() { }
 
 			#endregion
 

@@ -123,10 +123,7 @@ namespace Core.Combinatorics
 			/// <summary>
 			///     Cleans up non-managed resources, of which there are none used here.
 			/// </summary>
-			public virtual void Dispose()
-			{
-				;
-			}
+			public virtual void Dispose() { }
 
 			#endregion
 
@@ -240,10 +237,7 @@ namespace Core.Combinatorics
 		/// <summary>
 		///     No default constructor, must at least provided a list of values.
 		/// </summary>
-		protected Permutations()
-		{
-			;
-		}
+		protected Permutations() { }
 
 		/// <summary>
 		///     Create a permutation set from the provided list of values.

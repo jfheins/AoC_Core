@@ -203,10 +203,7 @@ namespace Core.Combinatorics
 			/// <summary>
 			///     Cleans up non-managed resources, of which there are none used here.
 			/// </summary>
-			public void Dispose()
-			{
-				;
-			}
+			public void Dispose() { }
 
 			#endregion
 
@@ -237,10 +234,7 @@ namespace Core.Combinatorics
 		/// <summary>
 		///     No default constructor, must provided a list of values and size.
 		/// </summary>
-		protected Combinations()
-		{
-			;
-		}
+		protected Combinations() { }
 
 		/// <summary>
 		///     Create a combination set from the provided list of values.
@@ -282,7 +276,7 @@ namespace Core.Combinatorics
 		/// <summary>
 		///     Gets an enumerator for collecting the list of combinations.
 		/// </summary>
-		/// <returns>The enumerator.returns>
+		/// <returns>The enumerator</returns>
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return new Enumerator(this);

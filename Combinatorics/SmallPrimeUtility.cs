@@ -29,10 +29,7 @@ namespace Core.Combinatorics
 		/// <summary>
 		///     Utility class, no instances allowed.
 		/// </summary>
-		private SmallPrimeUtility()
-		{
-			;
-		}
+		private SmallPrimeUtility() { }
 
 		/// <summary>
 		///     A List of all primes from 2 to 2^16.
