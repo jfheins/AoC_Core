@@ -22,19 +22,24 @@ namespace Core
 			return source.Select((value, index) => new {value, index})
 				.Where(x => predicate(x.value))
 				.Select(x => x.index);
-		}
+	    }
 
-		/// <summary>
-		///     Liefert zu einer Enumeration alle Paare zurück. Eine Enumeration mit n Elementen hat genau n-1 Paare.
-		///     Die Quelle wird nur einmal durchlaufen. Für jedes Paar wird ein neues Tupel generiert.
-		///     Item1 ist stets das Element, dass in der Quelle zuerst vorkommt.
-		/// </summary>
-		/// <param name="source">Die Quelle, die paarweise enumeriert werden soll.</param>
-		/// <returns>
-		///     Eine Enumeration mit n-1 überschneidenden Tupeln. Gibt eine leere Enumeration zurück, wenn die Quelle aus
-		///     weniger als zwei Elmenten besteht.
-		/// </returns>
-		public static IEnumerable<Tuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
+	    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
+	    {
+	        return source.Where(x => x != null);
+	    }
+
+        /// <summary>
+        ///     Liefert zu einer Enumeration alle Paare zurück. Eine Enumeration mit n Elementen hat genau n-1 Paare.
+        ///     Die Quelle wird nur einmal durchlaufen. Für jedes Paar wird ein neues Tupel generiert.
+        ///     Item1 ist stets das Element, dass in der Quelle zuerst vorkommt.
+        /// </summary>
+        /// <param name="source">Die Quelle, die paarweise enumeriert werden soll.</param>
+        /// <returns>
+        ///     Eine Enumeration mit n-1 überschneidenden Tupeln. Gibt eine leere Enumeration zurück, wenn die Quelle aus
+        ///     weniger als zwei Elmenten besteht.
+        /// </returns>
+        public static IEnumerable<Tuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
 		{
 			using (var it = source.GetEnumerator())
 			{
