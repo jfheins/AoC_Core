@@ -24,7 +24,17 @@ namespace Core
 				.Select(x => x.index);
 	    }
 
-	    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
+	    public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory)
+	    {
+	        if (dict.ContainsKey(key))
+	            return dict[key];
+
+	        var value = factory();
+	        dict.Add(key, value);
+	        return value;
+	    }
+
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
 	    {
 	        return source.Where(x => x != null);
 	    }
