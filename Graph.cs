@@ -27,27 +27,27 @@ namespace Core
 
                 var source = nodeFactory(src);
 
-                if (nodes.TryGetValue(src, out var node))
-                {
-                    graphEdges.Add(new GraphEdge<TNode, TEdge>(
+                //if (nodes.TryGetValue(src, out var node))
+                //{
+                //    graphEdges.Add(new GraphEdge<TNode, TEdge>(
                     
-                        edge,
-                        node,
+                //        edge,
+                //        node,
 
-                    ));
-                    edge.Source = node;
-                }
+                //    ));
+                //    edge.Source = node;
+                //}
 
-                edge.Source.OutgoingEdges.Add(edge);
-                edge.Destination.IncomingEdges.Add(edge);
+                //edge.Source.OutgoingEdges.Add(edge);
+                //edge.Destination.IncomingEdges.Add(edge);
             }
 
             return new Graph<TNode, TEdge>
             {
                 Edges = graphEdges,
-                Nodes = nodes,
-                Sources = nodes.Where(n => n.IncomingEdges.Count == 0),
-                Sinks = nodes.Where(n => n.OutgoingEdges.Count == 0)
+                //Nodes = nodes,
+                //Sources = nodes.Where(n => n.IncomingEdges.Count == 0),
+                //Sinks = nodes.Where(n => n.OutgoingEdges.Count == 0)
             };
         }
     }
