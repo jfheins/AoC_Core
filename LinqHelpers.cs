@@ -6,143 +6,167 @@ using System.Text.RegularExpressions;
 
 namespace Core
 {
-	public static class LinqHelpers
-	{
-		/// <summary>
-		///     Verpackt den angegebenen Wert in eine Enumeration mit einem Element.
-		/// </summary>
-		/// <typeparam name="T">Ein beliebiger Typ.</typeparam>
-		/// <param name="item">Der Wert, der verpackt werden soll.</param>
-		/// <returns>Eine Enumeration, die genau einen Wert enthält.</returns>
-		public static IEnumerable<T> ToEnumerable<T>(this T item)
-		{
-			yield return item;
-		}
+    public static class LinqHelpers
+    {
+        /// <summary>
+        ///     Verpackt den angegebenen Wert in eine Enumeration mit einem Element.
+        /// </summary>
+        /// <typeparam name="T">Ein beliebiger Typ.</typeparam>
+        /// <param name="item">Der Wert, der verpackt werden soll.</param>
+        /// <returns>Eine Enumeration, die genau einen Wert enthält.</returns>
+        public static IEnumerable<T> ToEnumerable<T>(this T item)
+        {
+            yield return item;
+        }
 
-		public static IEnumerable<int> IndexWhere<T>(this IEnumerable<T> source, Func<T, bool> predicate)
-		{
-			return source.Select((value, index) => new {value, index})
-				.Where(x => predicate(x.value))
-				.Select(x => x.index);
-		}
+        public static IEnumerable<int> IndexWhere<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            return source.Select((value, index) => new {value, index})
+                .Where(x => predicate(x.value))
+                .Select(x => x.index);
+        }
 
-		public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory)
-		{
-			if (dict.ContainsKey(key))
-				return dict[key];
+        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory)
+        {
+            if (dict.ContainsKey(key))
+            {
+                return dict[key];
+            }
 
-			var value = factory();
-			dict.Add(key, value);
-			return value;
-		}
+            var value = factory();
+            dict.Add(key, value);
+            return value;
+        }
 
-		public static int[] ParseInts(this string str, int? count = null)
-		{
-			var regex = new Regex(@"([-+]?[0-9]+)");
-			var matches = regex.Matches(str);
-			if (count != null)
-				Debug.Assert(matches.Count == count);
+        public static int[] ParseInts(this string str, int? count = null)
+        {
+            var regex = new Regex(@"([-+]?[0-9]+)");
+            var matches = regex.Matches(str);
+            if (count != null)
+            {
+                Debug.Assert(matches.Count == count);
+            }
 
-			return matches.Select(match => int.Parse(match.Value)).ToArray();
-		}
+            return matches.Select(match => int.Parse(match.Value)).ToArray();
+        }
 
-		public static (T min, T max) MinMax<T>(this ICollection<T> source)
-		{
-			return (source.Min(), source.Max());
-		}
+        public static IEnumerable<ValueTuple<T1, T2>> CartesianProduct<T1, T2>(this IEnumerable<T1> a,
+            IEnumerable<T2> b)
+        {
+            if (!(b is ICollection<T2>))
+            {
+                b = b.ToList();
+            }
 
-		public static (TResult min, TResult max) MinMax<T, TResult>(this ICollection<T> source, Func<T, TResult> selector)
-		{
-			return (source.Min(selector), source.Max(selector));
-		}
+            return a.SelectMany(x => b, (x, y) => (x, y));
+        }
 
-		public static int Diff(this ValueTuple<int, int> pair)
-		{
-			return pair.Item2 - pair.Item1;
-		}
+        public static (T min, T max) MinMax<T>(this ICollection<T> source)
+        {
+            return (source.Min(), source.Max());
+        }
 
-		public static double Diff(this ValueTuple<double, double> pair)
-		{
-			return pair.Item2 - pair.Item1;
-		}
+        public static (TResult min, TResult max) MinMax<T, TResult>(this ICollection<T> source,
+            Func<T, TResult> selector)
+        {
+            return (source.Min(selector), source.Max(selector));
+        }
 
-		public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
-		{
-			return source.Where(x => x != null);
-		}
+        public static int Diff(this ValueTuple<int, int> pair)
+        {
+            return pair.Item2 - pair.Item1;
+        }
 
-		/// <summary>
-		///     Liefert zu einer Enumeration alle Paare zurück. Eine Enumeration mit n Elementen hat genau n-1 Paare.
-		///     Die Quelle wird nur einmal durchlaufen. Für jedes Paar wird ein neues Tupel generiert.
-		///     Item1 ist stets das Element, dass in der Quelle zuerst vorkommt.
-		/// </summary>
-		/// <param name="source">Die Quelle, die paarweise enumeriert werden soll.</param>
-		/// <returns>
-		///     Eine Enumeration mit n-1 überschneidenden Tupeln. Gibt eine leere Enumeration zurück, wenn die Quelle aus
-		///     weniger als zwei Elmenten besteht.
-		/// </returns>
-		public static IEnumerable<ValueTuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
-		{
-			using (var it = source.GetEnumerator())
-			{
-				if (!it.MoveNext())
-					yield break;
+        public static double Diff(this ValueTuple<double, double> pair)
+        {
+            return pair.Item2 - pair.Item1;
+        }
 
-				var previous = it.Current;
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
+        {
+            return source.Where(x => x != null);
+        }
 
-				while (it.MoveNext())
-					yield return ValueTuple.Create(previous, previous = it.Current);
-			}
-		}
+        /// <summary>
+        ///     Liefert zu einer Enumeration alle Paare zurück. Eine Enumeration mit n Elementen hat genau n-1 Paare.
+        ///     Die Quelle wird nur einmal durchlaufen. Für jedes Paar wird ein neues Tupel generiert.
+        ///     Item1 ist stets das Element, dass in der Quelle zuerst vorkommt.
+        /// </summary>
+        /// <param name="source">Die Quelle, die paarweise enumeriert werden soll.</param>
+        /// <returns>
+        ///     Eine Enumeration mit n-1 überschneidenden Tupeln. Gibt eine leere Enumeration zurück, wenn die Quelle aus
+        ///     weniger als zwei Elmenten besteht.
+        /// </returns>
+        public static IEnumerable<ValueTuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
+        {
+            using (var it = source.GetEnumerator())
+            {
+                if (!it.MoveNext())
+                {
+                    yield break;
+                }
 
-		public static IEnumerable<Tuple<T, T>> Pairwise<T>(this IEnumerable<T> source)
-		{
-			var isPair = false;
-			var tempItem = default(T);
-			foreach (var item in source)
-				if (isPair)
-				{
-					yield return Tuple.Create(tempItem, item);
-					isPair = false;
-				}
-				else
-				{
-					tempItem = item;
-					isPair = true;
-				}
-		}
+                var previous = it.Current;
 
-		// https://stackoverflow.com/questions/419019/split-list-into-sublists-with-linq/20953521#20953521
-		public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable,
-															int chunkSize)
-		{
-			if (chunkSize < 1)
-				throw new ArgumentException("chunkSize must be positive");
+                while (it.MoveNext())
+                {
+                    yield return ValueTuple.Create(previous, previous = it.Current);
+                }
+            }
+        }
 
-			using (var e = enumerable.GetEnumerator())
-			{
-				while (e.MoveNext())
-				{
-					var remaining = chunkSize; // elements remaining in the current chunk
-					// ReSharper disable once AccessToDisposedClosure
-					var innerMoveNext = new Func<bool>(() => --remaining > 0 && e.MoveNext());
+        public static IEnumerable<Tuple<T, T>> Pairwise<T>(this IEnumerable<T> source)
+        {
+            var isPair = false;
+            var tempItem = default(T);
+            foreach (var item in source)
+            {
+                if (isPair)
+                {
+                    yield return Tuple.Create(tempItem, item);
+                    isPair = false;
+                }
+                else
+                {
+                    tempItem = item;
+                    isPair = true;
+                }
+            }
+        }
 
-					yield return e.GetChunk(innerMoveNext);
-					while (innerMoveNext())
-					{
-						/* discard elements skipped by inner iterator */
-					}
-				}
-			}
-		}
+        // https://stackoverflow.com/questions/419019/split-list-into-sublists-with-linq/20953521#20953521
+        public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable,
+            int chunkSize)
+        {
+            if (chunkSize < 1)
+            {
+                throw new ArgumentException("chunkSize must be positive");
+            }
 
-		private static IEnumerable<T> GetChunk<T>(this IEnumerator<T> e,
-												  Func<bool> innerMoveNext)
-		{
-			do
-			{
-				yield return e.Current;
-			} while (innerMoveNext());
-		}
-	}
+            using (var e = enumerable.GetEnumerator())
+            {
+                while (e.MoveNext())
+                {
+                    var remaining = chunkSize; // elements remaining in the current chunk
+                    // ReSharper disable once AccessToDisposedClosure
+                    var innerMoveNext = new Func<bool>(() => --remaining > 0 && e.MoveNext());
+
+                    yield return e.GetChunk(innerMoveNext);
+                    while (innerMoveNext())
+                    {
+                        /* discard elements skipped by inner iterator */
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<T> GetChunk<T>(this IEnumerator<T> e,
+            Func<bool> innerMoveNext)
+        {
+            do
+            {
+                yield return e.Current;
+            } while (innerMoveNext());
+        }
+    }
 }
