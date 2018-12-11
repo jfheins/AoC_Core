@@ -50,17 +50,6 @@ namespace Core
             return matches.Select(match => int.Parse(match.Value)).ToArray();
         }
 
-        public static IEnumerable<ValueTuple<T1, T2>> CartesianProduct<T1, T2>(this IEnumerable<T1> a,
-            IEnumerable<T2> b)
-        {
-            if (!(b is ICollection<T2>))
-            {
-                b = b.ToList();
-            }
-
-            return a.SelectMany(x => b, (x, y) => (x, y));
-        }
-
         public static (T min, T max) MinMax<T>(this ICollection<T> source)
         {
             return (source.Min(), source.Max());
