@@ -56,6 +56,16 @@ namespace Core
 			return (source.Min(selector), source.Max(selector));
 		}
 
+		public static int Diff(this ValueTuple<int, int> pair)
+		{
+			return pair.Item2 - pair.Item1;
+		}
+
+		public static double Diff(this ValueTuple<double, double> pair)
+		{
+			return pair.Item2 - pair.Item1;
+		}
+
 		public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
 		{
 			return source.Where(x => x != null);
@@ -71,7 +81,7 @@ namespace Core
 		///     Eine Enumeration mit n-1 überschneidenden Tupeln. Gibt eine leere Enumeration zurück, wenn die Quelle aus
 		///     weniger als zwei Elmenten besteht.
 		/// </returns>
-		public static IEnumerable<Tuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
+		public static IEnumerable<ValueTuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
 		{
 			using (var it = source.GetEnumerator())
 			{
@@ -81,7 +91,7 @@ namespace Core
 				var previous = it.Current;
 
 				while (it.MoveNext())
-					yield return Tuple.Create(previous, previous = it.Current);
+					yield return ValueTuple.Create(previous, previous = it.Current);
 			}
 		}
 
