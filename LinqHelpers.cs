@@ -77,6 +77,11 @@ namespace Core
             return pair.Item2 - pair.Item1;
         }
 
+        public static long Diff(this ValueTuple<long, long> pair)
+        {
+            return pair.Item2 - pair.Item1;
+        }
+
         public static double Diff(this ValueTuple<double, double> pair)
         {
             return pair.Item2 - pair.Item1;
