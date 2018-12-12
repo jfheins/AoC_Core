@@ -87,6 +87,12 @@ namespace Core
             return pair.Item2 - pair.Item1;
         }
 
+        public static bool AreAllEqual<T>(this IEnumerable<T> source) where T:IEquatable<T>
+        {
+            var first = source.First();
+            return source.All(x => x.Equals(first));
+        }
+
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
         {
             return source.Where(x => x != null);
