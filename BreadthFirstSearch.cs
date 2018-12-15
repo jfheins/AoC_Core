@@ -53,7 +53,7 @@ namespace Core
 												  int minResults = int.MaxValue)
 		{
 			var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
-			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) {new NodeWithPredecessor(initialNode)};
+			var nextNodes = new List<NodeWithPredecessor>() {new NodeWithPredecessor(initialNode)};
 
 			var results = new List<IPath<TNode>>();
 
@@ -71,7 +71,7 @@ namespace Core
 						.Select(dest => new NodeWithPredecessor(dest, sourceNode))
 						.Where(dest => !visitedNodes.Contains(dest)));
 
-				nextNodes = new HashSet<NodeWithPredecessor>(expanded, _comparer);
+				nextNodes = new List<NodeWithPredecessor>(expanded);
 
 				foreach (var node in nextNodes)
 					if (targetPredicate(node.Current))
