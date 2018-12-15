@@ -24,9 +24,14 @@ namespace Core
             return source.Select((value, index) => new {value, index})
                 .Where(x => predicate(x.value))
                 .Select(x => x.index);
-        }
+		}
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory)
+		public static IEnumerable<T> ExceptFor<T>(this IEnumerable<T> source, T exception)
+		{
+			return source.Where(x => !x.Equals(exception));
+		}
+
+		public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory)
         {
             if (dict.ContainsKey(key))
             {
