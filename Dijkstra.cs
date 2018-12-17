@@ -12,7 +12,7 @@ namespace Core
 
 		private readonly NodeComparer _comparer;
 
-		private readonly Func<TNode, SCG.IEnumerable<(TNode node, uint cost)>> _expander;
+		private readonly Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> _expander;
 
 		/// <summary>
 		///     Prepares a Dijkstra search.
@@ -20,7 +20,7 @@ namespace Core
 		/// <param name="expander">Callback to get the possible edges</param>
 		/// <param name="combiner">Callback to combine a source node and an edge to a (possibly new) node. May return null.</param>
 		public DijkstraSearch(SCG.IEqualityComparer<TNode> comparer,
-							  Func<TNode, SCG.IEnumerable<(TEdge edge, uint cost)>> expander,
+							  Func<TNode, SCG.IEnumerable<(TEdge edge, float cost)>> expander,
 							  Func<TNode, TEdge, TNode> combiner)
 		{
 			_comparer = new NodeComparer(comparer);
@@ -34,7 +34,7 @@ namespace Core
 		/// </summary>
 		/// <param name="expander">Callback to get the possible nodes from a source node</param>
 		public DijkstraSearch(SCG.IEqualityComparer<TNode> comparer,
-							  Func<TNode, SCG.IEnumerable<(TNode node, uint cost)>> expander)
+							  Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> expander)
 		{
 			_comparer = new NodeComparer(comparer);
 			_expander = expander;
@@ -56,12 +56,12 @@ namespace Core
 												   null,
 											   int minResults = int.MaxValue)
 		{
-			var initial = (initialNode, 0U).ToEnumerable();
+			var initial = (initialNode, 0f).ToEnumerable();
 			return FindAll(initial, targetPredicate, progressReporter, minResults);
 		}
 
 		[NotNull]
-		public SCG.IList<IPath<TNode>> FindAll(SCG.IEnumerable<(TNode node, uint cost)> initial,
+		public SCG.IList<IPath<TNode>> FindAll(SCG.IEnumerable<(TNode node, float cost)> initial,
 											   Func<TNode, bool> targetPredicate,
 											   ProgressReporterCallback progressReporter =
 												   null,
@@ -187,17 +187,17 @@ namespace Core
 			{
 				Current = initial;
 				Predecessor = null;
-				Cost = 0;
+				Cost = 0f;
 			}
 
-			public DijkstraNode(TNode current, DijkstraNode predecessor, uint edgeCost = 0)
+			public DijkstraNode(TNode current, DijkstraNode predecessor, float edgeCost = 0)
 			{
 				Current = current;
 				Predecessor = predecessor;
 				Cost = predecessor.Cost + edgeCost;
 			}
 
-			public uint Cost { get; }
+			public float Cost { get; }
 			public TNode Current { get; }
 			private DijkstraNode Predecessor { get; }
 			public IPriorityQueueHandle<DijkstraNode> Handle { get; set; }
