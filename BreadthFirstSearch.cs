@@ -95,14 +95,6 @@ namespace Core
 			return results;
 		}
 
-		private IEnumerable<NodeWithPredecessor> Expand(IEnumerable<NodeWithPredecessor> nextNodes,
-														HashSet<NodeWithPredecessor> visitedNodes)
-		{
-			return PerformParallelSearch
-				? ParallelExpand(nextNodes, visitedNodes)
-				: SequentialExpand(nextNodes, visitedNodes);
-		}
-
 		private IEnumerable<NodeWithPredecessor> ParallelExpand(IEnumerable<NodeWithPredecessor> nextNodes,
 																HashSet<NodeWithPredecessor> visitedNodes)
 		{
