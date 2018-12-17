@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -9,8 +8,6 @@ namespace Core
 	public class BreadthFirstSearch<TNode, TEdge>
 	{
 		public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
-
-		public bool PerformParallelSearch { get; set; } = true;
 
 		private readonly IEqualityComparer<NodeWithPredecessor> _comparer;
 		private readonly Func<TNode, IEnumerable<TNode>> _expander;
@@ -40,10 +37,12 @@ namespace Core
 			_expander = expander;
 		}
 
+		public bool PerformParallelSearch { get; set; } = true;
+
 		[CanBeNull]
 		public IPath<TNode> FindFirst(TNode initialNode,
-											 Func<TNode, bool> targetPredicate,
-											 ProgressReporterCallback progressReporter = null)
+									  Func<TNode, bool> targetPredicate,
+									  ProgressReporterCallback progressReporter = null)
 		{
 			var result = FindAll(initialNode, targetPredicate, progressReporter, 1);
 			return result.FirstOrDefault();
@@ -51,17 +50,22 @@ namespace Core
 
 		[NotNull]
 		public IList<IPath<TNode>> FindAll(TNode initialNode,
-												  Func<TNode, bool> targetPredicate,
-												  ProgressReporterCallback progressReporter = null,
-												  int minResults = int.MaxValue)
+										   Func<TNode, bool> targetPredicate,
+										   ProgressReporterCallback progressReporter = null,
+										   int minResults = int.MaxValue)
 		{
 			var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
 			var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) {new NodeWithPredecessor(initialNode)};
-
 			var results = new List<IPath<TNode>>();
+
+			var expander = PerformParallelSearch
+				? (Func<IEnumerable<NodeWithPredecessor>, IEnumerable<NodeWithPredecessor>>) (n =>
+					ParallelExpand(n, visitedNodes))
+				: n => SequentialExpand(n, visitedNodes);
 
 			if (targetPredicate(initialNode))
 				results.Add(new BfsPath(initialNode));
+
 
 			while (nextNodes.Count > 0)
 			{
@@ -69,23 +73,46 @@ namespace Core
 
 				visitedNodes.UnionWith(nextNodes);
 
-				var seq = PerformParallelSearch ? (IEnumerable<NodeWithPredecessor>)nextNodes.AsParallel() : nextNodes;
-				var expanded = seq
-					.SelectMany(sourceNode => _expander(sourceNode.Current)
-						.Select(dest => new NodeWithPredecessor(dest, sourceNode))
-						.Where(dest => !visitedNodes.Contains(dest)));
-
+				var expanded = expander(nextNodes);
 				nextNodes = new HashSet<NodeWithPredecessor>(expanded, _comparer);
 
 				foreach (var node in nextNodes)
+				{
 					if (targetPredicate(node.Current))
 						results.Add(new BfsPath(node));
+				}
 
 				if (results.Count >= minResults)
 					break;
 			}
 
 			return results;
+		}
+
+		private IEnumerable<NodeWithPredecessor> Expand(IEnumerable<NodeWithPredecessor> nextNodes,
+														HashSet<NodeWithPredecessor> visitedNodes)
+		{
+			return PerformParallelSearch
+				? ParallelExpand(nextNodes, visitedNodes)
+				: SequentialExpand(nextNodes, visitedNodes);
+		}
+
+		private IEnumerable<NodeWithPredecessor> ParallelExpand(IEnumerable<NodeWithPredecessor> nextNodes,
+																HashSet<NodeWithPredecessor> visitedNodes)
+		{
+			return nextNodes.AsParallel()
+				.SelectMany(sourceNode => _expander(sourceNode.Current)
+					.Select(dest => new NodeWithPredecessor(dest, sourceNode))
+					.Where(dest => !visitedNodes.Contains(dest)));
+		}
+
+		private IEnumerable<NodeWithPredecessor> SequentialExpand(IEnumerable<NodeWithPredecessor> nextNodes,
+																  HashSet<NodeWithPredecessor> visitedNodes)
+		{
+			return nextNodes
+				.SelectMany(sourceNode => _expander(sourceNode.Current)
+					.Select(dest => new NodeWithPredecessor(dest, sourceNode))
+					.Where(dest => !visitedNodes.Contains(dest)));
 		}
 
 		private class BfsPath : IPath<TNode>
