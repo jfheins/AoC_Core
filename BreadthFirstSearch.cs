@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -8,6 +9,8 @@ namespace Core
 	public class BreadthFirstSearch<TNode, TEdge>
 	{
 		public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
+
+		public bool PerformParallelSearch { get; set; } = true;
 
 		private readonly IEqualityComparer<NodeWithPredecessor> _comparer;
 		private readonly Func<TNode, IEnumerable<TNode>> _expander;
@@ -66,7 +69,8 @@ namespace Core
 
 				visitedNodes.UnionWith(nextNodes);
 
-				var expanded = nextNodes.AsParallel()
+				var seq = PerformParallelSearch ? (IEnumerable<NodeWithPredecessor>)nextNodes.AsParallel() : nextNodes;
+				var expanded = seq
 					.SelectMany(sourceNode => _expander(sourceNode.Current)
 						.Select(dest => new NodeWithPredecessor(dest, sourceNode))
 						.Where(dest => !visitedNodes.Contains(dest)));
