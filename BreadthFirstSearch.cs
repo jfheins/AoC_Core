@@ -64,7 +64,9 @@ namespace Core
 				: n => SequentialExpand(n, visitedNodes);
 
 			if (targetPredicate(initialNode))
+			{
 				results.Add(new BfsPath(initialNode));
+			}
 
 
 			while (nextNodes.Count > 0)
@@ -79,11 +81,15 @@ namespace Core
 				foreach (var node in nextNodes)
 				{
 					if (targetPredicate(node.Current))
+					{
 						results.Add(new BfsPath(node));
+					}
 				}
 
 				if (results.Count >= minResults)
+				{
 					break;
+				}
 			}
 
 			return results;
