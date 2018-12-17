@@ -121,10 +121,12 @@ namespace Core
 				// Remove duplicated, favor the lower cost one
 				foreach (var newNode in expanded)
 				{
-					if (nodeQueue.Find(node => _comparer.Equals(node, newNode), out var existing)
-						&& existing.Cost > newNode.Cost)
+					if (nodeQueue.Find(node => _comparer.Equals(node, newNode), out var existing))
 					{
-						nodeQueue.Replace(existing.Handle, newNode);
+						if(existing.Cost > newNode.Cost)
+						{
+							nodeQueue.Replace(existing.Handle, newNode);
+						}
 					}
 					else
 					{
