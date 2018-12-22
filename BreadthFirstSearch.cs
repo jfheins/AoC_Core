@@ -208,7 +208,7 @@ namespace Core
 			{
 				Predecessor = predecessor;
 				Current = current;
-                Distance =  predecessor?.Distance + 1 ?? 0;
+                Distance =  (predecessor?.Distance + 1) ?? 0;
 			}
 
 			public TNode Current { get; }
