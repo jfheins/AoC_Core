@@ -93,9 +93,57 @@ namespace Core
 			}
 
 			return results;
-		}
+        }
 
-		private IEnumerable<NodeWithPredecessor> ParallelExpand(IEnumerable<NodeWithPredecessor> nextNodes,
+        [NotNull]
+        public IList<IPath<TNode>> FindAll2(TNode initialNode,
+                                           Func<NodeWithPredecessor, bool> targetPredicate,
+                                           ProgressReporterCallback progressReporter = null,
+                                           int minResults = int.MaxValue)
+        {
+            var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
+            var initial = new NodeWithPredecessor(initialNode);
+            var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { initial };
+            var results = new List<IPath<TNode>>();
+
+            var expander = PerformParallelSearch
+                ? (Func<IEnumerable<NodeWithPredecessor>, IEnumerable<NodeWithPredecessor>>)(n =>
+                   ParallelExpand(n, visitedNodes))
+                : n => SequentialExpand(n, visitedNodes);
+
+            if (targetPredicate(initial))
+            {
+                results.Add(new BfsPath(initialNode));
+            }
+
+
+            while (nextNodes.Count > 0)
+            {
+                progressReporter?.Invoke(visitedNodes.Count, nextNodes.Count);
+
+                visitedNodes.UnionWith(nextNodes);
+
+                var expanded = expander(nextNodes);
+                nextNodes = new HashSet<NodeWithPredecessor>(expanded, _comparer);
+
+                foreach (var node in nextNodes)
+                {
+                    if (targetPredicate(node))
+                    {
+                        results.Add(new BfsPath(node));
+                    }
+                }
+
+                if (results.Count >= minResults)
+                {
+                    break;
+                }
+            }
+
+            return results;
+        }
+
+        private IEnumerable<NodeWithPredecessor> ParallelExpand(IEnumerable<NodeWithPredecessor> nextNodes,
 																HashSet<NodeWithPredecessor> visitedNodes)
 		{
 			return nextNodes.AsParallel()
@@ -154,18 +202,20 @@ namespace Core
 			}
 		}
 
-		private class NodeWithPredecessor
+		public class NodeWithPredecessor
 		{
 			public NodeWithPredecessor(TNode current, NodeWithPredecessor predecessor = null)
 			{
 				Predecessor = predecessor;
 				Current = current;
+                Distance =  predecessor?.Distance + 1 ?? 0;
 			}
 
 			public TNode Current { get; }
 			private NodeWithPredecessor Predecessor { get; }
+            public int Distance { get; set; }
 
-			public IEnumerable<TNode> GetHistory()
+            public IEnumerable<TNode> GetHistory()
 			{
 				var pointer = this;
 				do
