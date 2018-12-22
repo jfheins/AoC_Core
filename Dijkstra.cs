@@ -41,7 +41,7 @@ namespace Core
 		}
 
 		[CanBeNull]
-		public IPath<TNode> FindFirst(TNode initialNode,
+		public DijkstraPath FindFirst(TNode initialNode,
 									  Func<TNode, bool> targetPredicate,
 									  ProgressReporterCallback progressReporter = null)
 		{
@@ -50,7 +50,7 @@ namespace Core
 		}
 
 		[NotNull]
-		public SCG.IList<IPath<TNode>> FindAll(TNode initialNode,
+		public SCG.IList<DijkstraPath> FindAll(TNode initialNode,
 											   Func<TNode, bool> targetPredicate,
 											   ProgressReporterCallback progressReporter =
 												   null,
@@ -61,7 +61,7 @@ namespace Core
 		}
 
 		[NotNull]
-		public SCG.IList<IPath<TNode>> FindAll(SCG.IEnumerable<(TNode node, float cost)> initial,
+		public SCG.IList<DijkstraPath> FindAll(SCG.IEnumerable<(TNode node, float cost)> initial,
 											   Func<TNode, bool> targetPredicate,
 											   ProgressReporterCallback progressReporter =
 												   null,
@@ -72,16 +72,27 @@ namespace Core
 
 			var initialNodes = initial.ToList();
 			var origin = new DijkstraNode(initialNodes.Single(t => t.cost == 0).node);
-			visitedNodes.Add(origin);
-			foreach (var (node, cost) in initialNodes.Where(t => t.cost > 0))
+
+			if (initialNodes.Count > 1)
 			{
-				var dijkstraNode = new DijkstraNode(node, origin, cost);
+				visitedNodes.Add(origin);
+				foreach (var (node, cost) in initialNodes.Where(t => t.cost > 0))
+				{
+					var dijkstraNode = new DijkstraNode(node, origin, cost);
+					IPriorityQueueHandle<DijkstraNode> handle = null;
+					nodeQueue.Add(ref handle, dijkstraNode);
+					dijkstraNode.Handle = handle;
+				}
+			}
+			else
+			{
 				IPriorityQueueHandle<DijkstraNode> handle = null;
-				nodeQueue.Add(ref handle, dijkstraNode);
-				dijkstraNode.Handle = handle;
+				nodeQueue.Add(ref handle, origin);
+				origin.Handle = handle;
 			}
 
-			var results = new ArrayList<IPath<TNode>>();
+
+			var results = new ArrayList<DijkstraPath>();
 
 			if (targetPredicate(origin.Current))
 			{
@@ -140,7 +151,7 @@ namespace Core
 			return results;
 		}
 
-		private class DijkstraPath : IPath<TNode>
+		public class DijkstraPath : IPath<TNode>
 		{
 			public DijkstraPath(TNode singleNode)
 			{
@@ -154,11 +165,13 @@ namespace Core
 				Target = target.Current;
 				Steps = target.GetHistory().Reverse().ToArray();
 				Length = Steps.Length - 1;
+				Cost = target.Cost;
 			}
 
 			public TNode Target { get; }
 			public int Length { get; }
 			public TNode[] Steps { get; }
+			public float Cost { get; set; }
 		}
 
 		private class NodeComparer : SCG.EqualityComparer<DijkstraNode>
@@ -183,7 +196,7 @@ namespace Core
 
 		private class Handle : IPriorityQueueHandle<DijkstraNode> { }
 
-		private class DijkstraNode : IComparable<DijkstraNode>
+		public class DijkstraNode : IComparable<DijkstraNode>
 		{
 			public DijkstraNode(TNode initial)
 			{
