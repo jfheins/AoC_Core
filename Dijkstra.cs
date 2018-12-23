@@ -194,8 +194,6 @@ namespace Core
 			}
 		}
 
-		private class Handle : IPriorityQueueHandle<DijkstraNode> { }
-
 		public class DijkstraNode : IComparable<DijkstraNode>
 		{
 			public DijkstraNode(TNode initial)
