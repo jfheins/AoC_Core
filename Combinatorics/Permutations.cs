@@ -297,29 +297,29 @@ namespace Core.Combinatorics
 			return new Enumerator(this);
 		}
 
-		#endregion
+        #endregion
 
-		#region IMetaList Interface
+        #region IMetaList Interface
 
-		/// <summary>
-		///     The count of all permutations that will be returned.
-		///     If type is MetaCollectionType.WithholdGeneratedSets, then this does not double count permutations with multiple
-		///     identical values.
-		///     I.e. count of permutations of "AAB" will be 3 instead of 6.
-		///     If type is MetaCollectionType.WithRepetition, then this is all combinations and is therefore N!, where N is the
-		///     number of values.
-		/// </summary>
-		public long Count => myCount;
+        /// <summary>
+        ///     The count of all permutations that will be returned.
+        ///     If type is MetaCollectionType.WithholdGeneratedSets, then this does not double count permutations with multiple
+        ///     identical values.
+        ///     I.e. count of permutations of "AAB" will be 3 instead of 6.
+        ///     If type is MetaCollectionType.WithRepetition, then this is all combinations and is therefore N!, where N is the
+        ///     number of values.
+        /// </summary>
+        public long Count { get; private set; }
 
-		/// <summary>
-		///     The type of Permutations set that is generated.
-		/// </summary>
-		public GenerateOption Type => myMetaCollectionType;
+        /// <summary>
+        ///     The type of Permutations set that is generated.
+        /// </summary>
+        public GenerateOption Type { get; private set; }
 
-		/// <summary>
-		///     The upper index of the meta-collection, equal to the number of items in the initial set.
-		/// </summary>
-		public int UpperIndex => myValues.Count;
+        /// <summary>
+        ///     The upper index of the meta-collection, equal to the number of items in the initial set.
+        /// </summary>
+        public int UpperIndex => myValues.Count;
 
 		/// <summary>
 		///     The lower index of the meta-collection, equal to the number of items returned each iteration.
@@ -353,7 +353,7 @@ namespace Core.Combinatorics
 		/// </remarks>
 		private void Initialize(IList<T> values, GenerateOption type, IComparer<T> comparer)
 		{
-			myMetaCollectionType = type;
+			Type = type;
 			myValues = new List<T>(values.Count);
 			myValues.AddRange(values);
 			myLexicographicOrders = new int[values.Count];
@@ -378,7 +378,7 @@ namespace Core.Combinatorics
 				}
 			}
 
-			myCount = GetCount();
+			Count = GetCount();
 		}
 
 		/// <summary>
@@ -440,16 +440,6 @@ namespace Core.Combinatorics
 				return ((IComparable<U>) x).CompareTo(y);
 			}
 		}
-
-		/// <summary>
-		///     The count of all permutations.  Calculated at Initialization and returned by Count property.
-		/// </summary>
-		private long myCount;
-
-		/// <summary>
-		///     The type of Permutations that this was intialized from.
-		/// </summary>
-		private GenerateOption myMetaCollectionType;
 
 		#endregion
 	}
