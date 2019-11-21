@@ -55,15 +55,15 @@ namespace Core.Combinatorics
 		/// </remarks>
 		private void Initialize(IList<T> values, int lowerIndex, GenerateOption type)
 		{
-			myMetaCollectionType = type;
-			myLowerIndex = lowerIndex;
+			Type = type;
+			LowerIndex = lowerIndex;
 			myValues = new List<T>();
 			myValues.AddRange(values);
 			var myMap = new List<bool>();
 			if (type == GenerateOption.WithoutRepetition)
 			{
 				for (var i = 0; i < myValues.Count; ++i)
-					if (i >= myValues.Count - myLowerIndex)
+					if (i >= myValues.Count - LowerIndex)
 						myMap.Add(false);
 					else
 						myMap.Add(true);
@@ -72,7 +72,7 @@ namespace Core.Combinatorics
 			{
 				for (var i = 0; i < values.Count - 1; ++i)
 					myMap.Add(true);
-				for (var i = 0; i < myLowerIndex; ++i)
+				for (var i = 0; i < LowerIndex; ++i)
 					myMap.Add(false);
 			}
 
@@ -293,44 +293,34 @@ namespace Core.Combinatorics
 		/// </summary>
 		public long Count => myPermutations.Count;
 
-		/// <summary>
-		///     The type of Combinations set that is generated.
-		/// </summary>
-		public GenerateOption Type => myMetaCollectionType;
+        /// <summary>
+        ///     The type of Combinations set that is generated.
+        /// </summary>
+        public GenerateOption Type { get; private set; }
 
-		/// <summary>
-		///     The upper index of the meta-collection, equal to the number of items in the initial set.
-		/// </summary>
-		public int UpperIndex => myValues.Count;
+        /// <summary>
+        ///     The upper index of the meta-collection, equal to the number of items in the initial set.
+        /// </summary>
+        public int UpperIndex => myValues.Count;
 
-		/// <summary>
-		///     The lower index of the meta-collection, equal to the number of items returned each iteration.
-		/// </summary>
-		public int LowerIndex => myLowerIndex;
+        /// <summary>
+        ///     The lower index of the meta-collection, equal to the number of items returned each iteration.
+        /// </summary>
+        public int LowerIndex { get; private set; }
 
-		#endregion
+        #endregion
 
-		#region Data
+        #region Data
 
-		/// <summary>
-		///     Copy of values object is intialized with, required for enumerator reset.
-		/// </summary>
-		private List<T> myValues;
+        /// <summary>
+        ///     Copy of values object is intialized with, required for enumerator reset.
+        /// </summary>
+        private List<T> myValues;
 
 		/// <summary>
 		///     Permutations object that handles permutations on booleans for combination inclusion.
 		/// </summary>
 		private Permutations<bool> myPermutations;
-
-		/// <summary>
-		///     The type of the combination collection.
-		/// </summary>
-		private GenerateOption myMetaCollectionType;
-
-		/// <summary>
-		///     The lower index defined in the constructor.
-		/// </summary>
-		private int myLowerIndex;
 
 		#endregion
 	}
