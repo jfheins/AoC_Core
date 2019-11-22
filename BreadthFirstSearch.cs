@@ -40,7 +40,7 @@ namespace Core
         public bool PerformParallelSearch { get; set; } = true;
 
         [CanBeNull]
-        public IPath<TNode> FindFirst(TNode initialNode,
+        public IPath<TNode>? FindFirst(TNode initialNode,
                                       Func<TNode, bool> targetPredicate,
                                       ProgressReporterCallback? progressReporter = null)
         {
@@ -58,6 +58,7 @@ namespace Core
         }
 
         [NotNull]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods")]
         public IList<IPath<TNode>> FindAll(TNode initialNode,
                                            Func<TNode, bool> targetPredicate,
                                            ProgressReporterCallback? progressReporter = null,
@@ -67,7 +68,7 @@ namespace Core
         }
 
         [NotNull]
-        public IList<IPath<TNode>> FindAll2(TNode initialNode,
+        public IList<IPath<TNode>> FindAll(TNode initialNode,
                                            Func<NodeWithPredecessor, bool> targetPredicate,
                                            ProgressReporterCallback? progressReporter = null,
                                            int minResults = int.MaxValue)
@@ -191,7 +192,7 @@ namespace Core
 
             public IEnumerable<TNode> GetHistory()
             {
-                var pointer = this;
+                NodeWithPredecessor? pointer = this;
                 do
                 {
                     yield return pointer.Current;

@@ -21,17 +21,18 @@ namespace Core
 
         public static IEnumerable<int> IndexWhere<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
-            return source.Select((value, index) => new {value, index})
+            return source.Select((value, index) => new { value, index })
                 .Where(x => predicate(x.value))
                 .Select(x => x.index);
-		}
+        }
 
-		public static IEnumerable<T> ExceptFor<T>(this IEnumerable<T> source, T exception)
-		{
-			return source.Where(x => !x.Equals(exception));
-		}
+        public static IEnumerable<T> ExceptFor<T>(this IEnumerable<T> source, T exception)
+        {
+            return source.Where(x => !x.Equals(exception));
+        }
 
-		public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
+        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory) where TKey : notnull
         {
             if (dict.ContainsKey(key))
             {
@@ -92,7 +93,7 @@ namespace Core
             return pair.Item2 - pair.Item1;
         }
 
-        public static bool AreAllEqual<T>(this IEnumerable<T> source) where T:IEquatable<T>
+        public static bool AreAllEqual<T>(this IEnumerable<T> source) where T : IEquatable<T>
         {
             var first = source.First();
             return source.All(x => x.Equals(first));
