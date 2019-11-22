@@ -48,54 +48,22 @@ namespace Core
             return result.FirstOrDefault();
         }
 
+        [CanBeNull]
+        public IPath<TNode>? FindFirst(TNode initialNode,
+                                      Func<NodeWithPredecessor, bool> targetPredicate,
+                                      ProgressReporterCallback? progressReporter = null)
+        {
+            var result = FindAll(initialNode, targetPredicate, progressReporter, 1);
+            return result.FirstOrDefault();
+        }
+
         [NotNull]
         public IList<IPath<TNode>> FindAll(TNode initialNode,
                                            Func<TNode, bool> targetPredicate,
                                            ProgressReporterCallback? progressReporter = null,
                                            int minResults = int.MaxValue)
         {
-            if (targetPredicate == null)
-                throw new ArgumentNullException(nameof(targetPredicate), "A meaningful targetPredicate must be provided");
-
-            var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
-            var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { new NodeWithPredecessor(initialNode) };
-            var results = new List<IPath<TNode>>();
-
-            var expander = PerformParallelSearch
-                ? (Func<IEnumerable<NodeWithPredecessor>, IEnumerable<NodeWithPredecessor>>)(n =>
-                   ParallelExpand(n, visitedNodes))
-                : n => SequentialExpand(n, visitedNodes);
-
-            if (targetPredicate(initialNode))
-            {
-                results.Add(new BfsPath(initialNode));
-            }
-
-
-            while (nextNodes.Count > 0)
-            {
-                progressReporter?.Invoke(visitedNodes.Count, nextNodes.Count);
-
-                visitedNodes.UnionWith(nextNodes);
-
-                var expanded = expander(nextNodes);
-                nextNodes = new HashSet<NodeWithPredecessor>(expanded, _comparer);
-
-                foreach (var node in nextNodes)
-                {
-                    if (targetPredicate(node.Current))
-                    {
-                        results.Add(new BfsPath(node));
-                    }
-                }
-
-                if (results.Count >= minResults)
-                {
-                    break;
-                }
-            }
-
-            return results;
+            return FindAll(initialNode, bfsnode => targetPredicate(bfsnode.Current), progressReporter, minResults);
         }
 
         [NotNull]
