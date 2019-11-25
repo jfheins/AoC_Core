@@ -6,7 +6,7 @@ using SCG = System.Collections.Generic;
 
 namespace Core
 {
-    public class DijkstraSearch<TNode, TEdge>
+    public class DijkstraSearch<TNode, TEdge> where TNode : notnull
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
@@ -69,6 +69,7 @@ namespace Core
         {
             var visitedNodes = new HashSet<DijkstraNode>(_comparer);
             var nodeQueue = new IntervalHeap<DijkstraNode>();
+            var cache = new SCG.Dictionary<TNode, DijkstraNode>(_comparer._comparer);
 
             var initialNodes = initial.ToList();
             var origin = new DijkstraNode(initialNodes.Single(t => t.cost == 0).node);
@@ -82,6 +83,7 @@ namespace Core
                     IPriorityQueueHandle<DijkstraNode>? handle = null;
                     _ = nodeQueue.Add(ref handle, dijkstraNode);
                     dijkstraNode.Handle = handle;
+                    cache[node] = dijkstraNode;
                 }
             }
             else
@@ -89,6 +91,7 @@ namespace Core
                 IPriorityQueueHandle<DijkstraNode> handle = null;
                 _ = nodeQueue.Add(ref handle, origin);
                 origin.Handle = handle;
+                cache[initialNodes.First().node] = origin;
             }
 
 
@@ -99,6 +102,8 @@ namespace Core
                 progressReporter?.Invoke(visitedNodes.Count, nodeQueue.Count);
 
                 var nextNode = nodeQueue.DeleteMin();
+                cache.Remove(nextNode.Current);
+
                 visitedNodes.Add(nextNode);
 
                 if (targetPredicate(nextNode.Current))
@@ -119,17 +124,20 @@ namespace Core
                 // Remove duplicated, favor the lower cost one
                 foreach (var newNode in expanded)
                 {
-                    if (nodeQueue.Find(node => _comparer.Equals(node, newNode), out var existing))
+                    //if (nodeQueue.Find(node => _comparer.Equals(node, newNode), out var existing))
+                    if (cache.TryGetValue(newNode.Current, out var existing))
                     {
                         if (existing.Cost > newNode.Cost)
                         {
                             nodeQueue.Replace(existing.Handle, newNode);
+                            cache[newNode.Current] = newNode;
                         }
                     }
                     else
                     {
                         IPriorityQueueHandle<DijkstraNode> handle = null;
                         nodeQueue.Add(ref handle, newNode);
+                        cache[newNode.Current] = newNode;
                         newNode.Handle = handle;
                     }
                 }
@@ -163,7 +171,7 @@ namespace Core
 
         private class NodeComparer : SCG.EqualityComparer<DijkstraNode>
         {
-            private readonly SCG.IEqualityComparer<TNode> _comparer;
+            public readonly SCG.IEqualityComparer<TNode> _comparer;
 
             public NodeComparer(SCG.IEqualityComparer<TNode> comparer)
             {
