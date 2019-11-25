@@ -25,7 +25,7 @@ namespace Core
 
         public AStarPath? FindFirst(TNode initialNode,
                                       Func<TNode, bool> targetPredicate,
-                                               Func<TNode, float> heuristic,
+                                      Func<TNode, float> heuristic,
                                       ProgressReporterCallback? progressReporter = null)
         {
             var result = FindAll(initialNode, targetPredicate, heuristic, progressReporter, 1);
