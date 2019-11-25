@@ -9,7 +9,7 @@ namespace Core
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
-        private readonly NodeComparer _comparer;
+        private readonly SCG.IEqualityComparer<TNode> _comparer;
         private readonly Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> _expander;
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace Core
         public DijkstraSearch(SCG.IEqualityComparer<TNode> comparer,
                               Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> expander)
         {
-            _comparer = new NodeComparer(comparer);
+            _comparer = comparer;
             _expander = expander;
         }
 
@@ -48,7 +48,7 @@ namespace Core
                                                    null,
                                                int minResults = int.MaxValue)
         {
-            var visitedNodes = new HashSet<DijkstraNode>(_comparer);
+            var visitedNodes = new HashSet<TNode>(_comparer);
             var nodeQueue = new IntervalHeap<DijkstraNode>();
 
             var initialNodes = initial.ToList();
@@ -56,7 +56,7 @@ namespace Core
 
             if (initialNodes.Count > 1)
             {
-                _ = visitedNodes.Add(origin);
+                _ = visitedNodes.Add(origin.Item);
                 foreach (var (node, cost) in initialNodes.Where(t => t.cost > 0))
                 {
                     var dijkstraNode = new DijkstraNode(node, origin, cost);
@@ -84,11 +84,11 @@ namespace Core
                 {
                     // The queue could contain visited nodes because deduping on insert is slow
                     nextNode = nodeQueue.DeleteMin();
-                } while (visitedNodes.Contains(nextNode));
+                } while (visitedNodes.Contains(nextNode.Item));
 
-                _ = visitedNodes.Add(nextNode);
+                _ = visitedNodes.Add(nextNode.Item);
 
-                if (targetPredicate(nextNode.Current))
+                if (targetPredicate(nextNode.Item))
                 {
                     _ = results.Add(new DijkstraPath(nextNode));
                     if (results.Count >= minResults)
@@ -97,9 +97,9 @@ namespace Core
                     }
                 }
 
-                var expanded = _expander(nextNode.Current)
-                    .Select(dest => new DijkstraNode(dest.node, nextNode, dest.cost))
-                    .Where(dest => !visitedNodes.Contains(dest))
+                var expanded = _expander(nextNode.Item)
+                    .Where(step => !visitedNodes.Contains(step.node))
+                    .Select(step => new DijkstraNode(step.node, nextNode, step.cost))
                     .ToList();
 
                 foreach (var newNode in expanded)
@@ -124,7 +124,7 @@ namespace Core
 
             public DijkstraPath(DijkstraNode target)
             {
-                Target = target.Current;
+                Target = target.Item;
                 Steps = target.GetHistory().Reverse().ToArray();
                 Length = Steps.Length - 1;
                 Cost = target.Cost;
@@ -147,12 +147,12 @@ namespace Core
 
             public override bool Equals(DijkstraNode a, DijkstraNode b)
             {
-                return _comparer.Equals(a.Current, b.Current);
+                return _comparer.Equals(a.Item, b.Item);
             }
 
             public override int GetHashCode(DijkstraNode x)
             {
-                return _comparer.GetHashCode(x.Current);
+                return _comparer.GetHashCode(x.Item);
             }
         }
 
@@ -160,20 +160,20 @@ namespace Core
         {
             internal DijkstraNode(TNode initial)
             {
-                Current = initial;
+                Item = initial;
                 Predecessor = null;
                 Cost = 0f;
             }
 
             internal DijkstraNode(TNode current, DijkstraNode predecessor, float edgeCost = 0)
             {
-                Current = current;
+                Item = current;
                 Predecessor = predecessor;
                 Cost = predecessor.Cost + edgeCost;
             }
 
             public float Cost { get; }
-            public TNode Current { get; }
+            public TNode Item { get; }
             private DijkstraNode Predecessor { get; }
             public IPriorityQueueHandle<DijkstraNode>? Handle { get; set; }
 
@@ -187,7 +187,7 @@ namespace Core
                 var pointer = this;
                 do
                 {
-                    yield return pointer.Current;
+                    yield return pointer.Item;
                     pointer = pointer.Predecessor;
                 } while (pointer != null);
             }

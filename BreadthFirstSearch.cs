@@ -64,7 +64,7 @@ namespace Core
                                            ProgressReporterCallback? progressReporter = null,
                                            int minResults = int.MaxValue)
         {
-            return FindAll(initialNode, bfsnode => targetPredicate(bfsnode.Current), progressReporter, minResults);
+            return FindAll(initialNode, bfsnode => targetPredicate(bfsnode.Item), progressReporter, minResults);
         }
 
         [NotNull]
@@ -122,7 +122,7 @@ namespace Core
                                                                 HashSet<NodeWithPredecessor> visitedNodes)
         {
             return nextNodes.AsParallel()
-                .SelectMany(sourceNode => _expander(sourceNode.Current)
+                .SelectMany(sourceNode => _expander(sourceNode.Item)
                     .Select(dest => new NodeWithPredecessor(dest, sourceNode))
                     .Where(dest => !visitedNodes.Contains(dest)));
         }
@@ -131,7 +131,7 @@ namespace Core
                                                                   HashSet<NodeWithPredecessor> visitedNodes)
         {
             return nextNodes
-                .SelectMany(sourceNode => _expander(sourceNode.Current)
+                .SelectMany(sourceNode => _expander(sourceNode.Item)
                     .Select(dest => new NodeWithPredecessor(dest, sourceNode))
                     .Where(dest => !visitedNodes.Contains(dest)));
         }
@@ -147,7 +147,7 @@ namespace Core
 
             public BfsPath(NodeWithPredecessor target)
             {
-                Target = target.Current;
+                Target = target.Item;
                 Steps = target.GetHistory().Reverse().ToArray();
                 Length = Steps.Length - 1;
             }
@@ -168,12 +168,12 @@ namespace Core
 
             public override bool Equals(NodeWithPredecessor a, NodeWithPredecessor b)
             {
-                return _comparer.Equals(a.Current, b.Current);
+                return _comparer.Equals(a.Item, b.Item);
             }
 
             public override int GetHashCode(NodeWithPredecessor x)
             {
-                return _comparer.GetHashCode(x.Current);
+                return _comparer.GetHashCode(x.Item);
             }
         }
 
@@ -182,12 +182,12 @@ namespace Core
             public NodeWithPredecessor(TNode current, NodeWithPredecessor? predecessor = null)
             {
                 Predecessor = predecessor;
-                Current = current;
+                Item = current;
                 Distance = (predecessor?.Distance + 1) ?? 0;
             }
 
-            public TNode Current { get; }
-			public NodeWithPredecessor? Predecessor { get; }
+            public TNode Item { get; }
+            public NodeWithPredecessor? Predecessor { get; }
             public int Distance { get; set; }
 
             public IEnumerable<TNode> GetHistory()
@@ -195,7 +195,7 @@ namespace Core
                 NodeWithPredecessor? pointer = this;
                 do
                 {
-                    yield return pointer.Current;
+                    yield return pointer.Item;
                     pointer = pointer.Predecessor;
                 } while (pointer != null);
             }

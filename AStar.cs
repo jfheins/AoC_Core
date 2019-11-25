@@ -9,7 +9,7 @@ namespace Core
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
-        private readonly NodeComparer _comparer;
+        private readonly SCG.IEqualityComparer<TNode> _comparer;
         private readonly Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> _expander;
 
         /// <summary>
@@ -17,9 +17,9 @@ namespace Core
         /// </summary>
         /// <param name="expander">Callback to get the possible nodes from a source node</param>
         public AStarSearch(SCG.IEqualityComparer<TNode> comparer,
-                              Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> expander)
+                              Func<TNode, SCG.IEnumerable<(TNode node, float edgeCost)>> expander)
         {
-            _comparer = new NodeComparer(comparer);
+            _comparer = comparer;
             _expander = expander;
         }
 
@@ -44,7 +44,7 @@ namespace Core
                 throw new ArgumentNullException(nameof(heuristic));
             }
 
-            var visitedNodes = new HashSet<AStarNode>(_comparer);
+            var visitedNodes = new HashSet<TNode>(_comparer);
             var nodeQueue = new IntervalHeap<AStarNode>();
             var openSet = new SCG.Dictionary<TNode, AStarNode>();
 
@@ -54,23 +54,23 @@ namespace Core
                 IPriorityQueueHandle<AStarNode>? handle = null;
                 _ = nodeQueue.Add(ref handle, node);
                 node.Handle = handle;
-                openSet[node.Current] = node;
+                openSet[node.Item] = node;
             }
             AStarNode PopMinNode()
             {
                 var nextNode = nodeQueue.DeleteMin();
-                _ = openSet.Remove(nextNode.Current);
+                _ = openSet.Remove(nextNode.Item);
                 return nextNode;
             }
             void QueueOrUpdateNode(AStarNode newNode)
             {
-                if (openSet.TryGetValue(newNode.Current, out var existing))
+                if (openSet.TryGetValue(newNode.Item, out var existing))
                 {
                     if (existing.Cost > newNode.Cost)
                     {
                         _ = nodeQueue.Replace(existing.Handle, newNode);
                         newNode.Handle = existing.Handle;
-                        openSet[newNode.Current] = newNode;
+                        openSet[newNode.Item] = newNode;
                     }
                 }
                 else
@@ -90,9 +90,9 @@ namespace Core
                 progressReporter?.Invoke(visitedNodes.Count, nodeQueue.Count);
 
                 var currentNode = PopMinNode();
-                _ = visitedNodes.Add(currentNode);
+                _ = visitedNodes.Add(currentNode.Item);
 
-                if (targetPredicate(currentNode.Current))
+                if (targetPredicate(currentNode.Item))
                 {
                     _ = results.Add(new AStarPath(currentNode));
                     if (results.Count >= minResults)
@@ -101,9 +101,9 @@ namespace Core
                     }
                 }
 
-                var expanded = _expander(currentNode.Current)
+                var expanded = _expander(currentNode.Item)
+                    .Where(step => !visitedNodes.Contains(step.node))
                     .Select(step => new AStarNode(step.node, currentNode, step.cost, heuristic(step.node)))
-                    .Where(node => !visitedNodes.Contains(node))
                     .ToList();
 
                 foreach (var newNode in expanded)
@@ -126,7 +126,7 @@ namespace Core
 
             public AStarPath(AStarNode target)
             {
-                Target = target.Current;
+                Target = target.Item;
                 Steps = target.GetHistory().Reverse().ToArray();
                 Length = Steps.Length - 1;
                 Cost = target.Cost;
@@ -138,38 +138,18 @@ namespace Core
             public float Cost { get; set; }
         }
 
-        private class NodeComparer : SCG.EqualityComparer<AStarNode>
-        {
-            public readonly SCG.IEqualityComparer<TNode> _comparer;
-
-            public NodeComparer(SCG.IEqualityComparer<TNode> comparer)
-            {
-                _comparer = comparer;
-            }
-
-            public override bool Equals(AStarNode a, AStarNode b)
-            {
-                return _comparer.Equals(a.Current, b.Current);
-            }
-
-            public override int GetHashCode(AStarNode x)
-            {
-                return _comparer.GetHashCode(x.Current);
-            }
-        }
-
         public class AStarNode : IComparable<AStarNode>
         {
             internal AStarNode(TNode initial, float remainder)
             {
-                Current = initial;
+                Item = initial;
                 Predecessor = null;
                 Cost = 0f;
             }
 
             internal AStarNode(TNode current, AStarNode predecessor, float edgeCost = 0, float remainder = 0)
             {
-                Current = current;
+                Item = current;
                 Predecessor = predecessor;
                 Cost = predecessor.Cost + edgeCost;
                 Remaining = remainder;
@@ -180,7 +160,7 @@ namespace Core
 
             public float OverallEstimate => Cost + Remaining;
 
-            public TNode Current { get; }
+            public TNode Item { get; }
             private AStarNode Predecessor { get; }
             public IPriorityQueueHandle<AStarNode>? Handle { get; set; }
 
@@ -191,7 +171,7 @@ namespace Core
                 var pointer = this;
                 do
                 {
-                    yield return pointer.Current;
+                    yield return pointer.Item;
                     pointer = pointer.Predecessor;
                 } while (pointer != null);
             }
