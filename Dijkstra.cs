@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using C5;
-using JetBrains.Annotations;
 using SCG = System.Collections.Generic;
 
 namespace Core
@@ -68,7 +67,7 @@ namespace Core
             }
             else
             {
-                IPriorityQueueHandle<DijkstraNode> handle = null;
+                IPriorityQueueHandle<DijkstraNode>? handle = null;
                 _ = nodeQueue.Add(ref handle, origin);
                 origin.Handle = handle;
             }
@@ -105,7 +104,7 @@ namespace Core
 
                 foreach (var newNode in expanded)
                 {
-                    IPriorityQueueHandle<DijkstraNode> handle = null;
+                    IPriorityQueueHandle<DijkstraNode>? handle = null;
                     _ = nodeQueue.Add(ref handle, newNode);
                     newNode.Handle = handle;
                 }
