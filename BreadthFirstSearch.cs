@@ -187,7 +187,7 @@ namespace Core
             }
 
             public TNode Current { get; }
-            private NodeWithPredecessor? Predecessor { get; }
+			public NodeWithPredecessor? Predecessor { get; }
             public int Distance { get; set; }
 
             public IEnumerable<TNode> GetHistory()
