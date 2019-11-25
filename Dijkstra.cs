@@ -6,28 +6,12 @@ using SCG = System.Collections.Generic;
 
 namespace Core
 {
-    public class DijkstraSearch<TNode, TEdge> where TNode : notnull
+    public class DijkstraSearch<TNode>
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
         private readonly NodeComparer _comparer;
-
         private readonly Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> _expander;
-
-        /// <summary>
-        ///     Prepares a Dijkstra search.
-        /// </summary>
-        /// <param name="expander">Callback to get the possible edges</param>
-        /// <param name="combiner">Callback to combine a source node and an edge to a (possibly new) node. May return null.</param>
-        public DijkstraSearch(SCG.IEqualityComparer<TNode> comparer,
-                              Func<TNode, SCG.IEnumerable<(TEdge edge, float cost)>> expander,
-                              Func<TNode, TEdge, TNode> combiner)
-        {
-            _comparer = new NodeComparer(comparer);
-            _expander = node =>
-                expander(node).Select(weightedEdge => (combiner(node, weightedEdge.edge), weightedEdge.cost))
-                    .Where(x => x.Item1 != null);
-        }
 
         /// <summary>
         ///     Prepares a Dijkstra search.
@@ -40,7 +24,6 @@ namespace Core
             _expander = expander;
         }
 
-        [CanBeNull]
         public DijkstraPath? FindFirst(TNode initialNode,
                                       Func<TNode, bool> targetPredicate,
                                       ProgressReporterCallback? progressReporter = null)
@@ -49,7 +32,6 @@ namespace Core
             return result.FirstOrDefault();
         }
 
-        [NotNull]
         public SCG.IList<DijkstraPath> FindAll(TNode initialNode,
                                                Func<TNode, bool> targetPredicate,
                                                ProgressReporterCallback? progressReporter =
@@ -60,7 +42,7 @@ namespace Core
             return FindAll(initial, targetPredicate, progressReporter, minResults);
         }
 
-        [NotNull]
+
         public SCG.IList<DijkstraPath> FindAll(SCG.IEnumerable<(TNode node, float cost)> initial,
                                                Func<TNode, bool> targetPredicate,
                                                ProgressReporterCallback? progressReporter =
@@ -69,7 +51,6 @@ namespace Core
         {
             var visitedNodes = new HashSet<DijkstraNode>(_comparer);
             var nodeQueue = new IntervalHeap<DijkstraNode>();
-            var cache = new SCG.Dictionary<TNode, DijkstraNode>(_comparer._comparer);
 
             var initialNodes = initial.ToList();
             var origin = new DijkstraNode(initialNodes.Single(t => t.cost == 0).node);
@@ -83,7 +64,6 @@ namespace Core
                     IPriorityQueueHandle<DijkstraNode>? handle = null;
                     _ = nodeQueue.Add(ref handle, dijkstraNode);
                     dijkstraNode.Handle = handle;
-                    cache[node] = dijkstraNode;
                 }
             }
             else
@@ -91,7 +71,6 @@ namespace Core
                 IPriorityQueueHandle<DijkstraNode> handle = null;
                 _ = nodeQueue.Add(ref handle, origin);
                 origin.Handle = handle;
-                cache[initialNodes.First().node] = origin;
             }
 
 
@@ -101,15 +80,18 @@ namespace Core
             {
                 progressReporter?.Invoke(visitedNodes.Count, nodeQueue.Count);
 
-                var nextNode = nodeQueue.DeleteMin();
-                cache.Remove(nextNode.Current);
+                DijkstraNode nextNode;
+                do
+                {
+                    // The queue could contain visited nodes because deduping on insert is slow
+                    nextNode = nodeQueue.DeleteMin();
+                } while (visitedNodes.Contains(nextNode));
 
-                visitedNodes.Add(nextNode);
+                _ = visitedNodes.Add(nextNode);
 
                 if (targetPredicate(nextNode.Current))
                 {
-                    results.Add(new DijkstraPath(nextNode));
-
+                    _ = results.Add(new DijkstraPath(nextNode));
                     if (results.Count >= minResults)
                     {
                         break;
@@ -121,25 +103,11 @@ namespace Core
                     .Where(dest => !visitedNodes.Contains(dest))
                     .ToList();
 
-                // Remove duplicated, favor the lower cost one
                 foreach (var newNode in expanded)
                 {
-                    //if (nodeQueue.Find(node => _comparer.Equals(node, newNode), out var existing))
-                    if (cache.TryGetValue(newNode.Current, out var existing))
-                    {
-                        if (existing.Cost > newNode.Cost)
-                        {
-                            nodeQueue.Replace(existing.Handle, newNode);
-                            cache[newNode.Current] = newNode;
-                        }
-                    }
-                    else
-                    {
-                        IPriorityQueueHandle<DijkstraNode> handle = null;
-                        nodeQueue.Add(ref handle, newNode);
-                        cache[newNode.Current] = newNode;
-                        newNode.Handle = handle;
-                    }
+                    IPriorityQueueHandle<DijkstraNode> handle = null;
+                    _ = nodeQueue.Add(ref handle, newNode);
+                    newNode.Handle = handle;
                 }
             }
 
@@ -191,14 +159,14 @@ namespace Core
 
         public class DijkstraNode : IComparable<DijkstraNode>
         {
-            public DijkstraNode(TNode initial)
+            internal DijkstraNode(TNode initial)
             {
                 Current = initial;
                 Predecessor = null;
                 Cost = 0f;
             }
 
-            public DijkstraNode(TNode current, DijkstraNode predecessor, float edgeCost = 0)
+            internal DijkstraNode(TNode current, DijkstraNode predecessor, float edgeCost = 0)
             {
                 Current = current;
                 Predecessor = predecessor;
@@ -208,7 +176,7 @@ namespace Core
             public float Cost { get; }
             public TNode Current { get; }
             private DijkstraNode Predecessor { get; }
-            public IPriorityQueueHandle<DijkstraNode> Handle { get; set; }
+            public IPriorityQueueHandle<DijkstraNode>? Handle { get; set; }
 
             public int CompareTo(DijkstraNode other)
             {
