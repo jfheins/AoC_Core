@@ -94,18 +94,18 @@ namespace Core
 
             var results = new ArrayList<DijkstraPath>();
 
-            if (targetPredicate(origin.Current))
-            {
-                results.Add(new DijkstraPath(origin.Current));
-            }
+            //if (targetPredicate(origin.Current))
+            //{
+            //	results.Add(new DijkstraPath(origin.Current));
+            //}
 
-            foreach (var node in nodeQueue.Where(n => targetPredicate(n.Current)))
-                results.Add(new DijkstraPath(node));
+            //foreach (var node in nodeQueue.Where(n => targetPredicate(n.Current)))
+            //	results.Add(new DijkstraPath(node));
 
-            if (results.Count >= minResults)
-            {
-                return results;
-            }
+            //if (results.Count >= minResults)
+            //{
+            //	return results;
+            //}
 
             while (nodeQueue.Count > 0)
             {
