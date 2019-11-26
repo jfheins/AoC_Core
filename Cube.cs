@@ -34,27 +34,23 @@ namespace Core
 
         public IEnumerable<ILineSegment> GetEdges()
         {
-            for (int x = BottomLeft.X; x < TopRight.X; x++)
-            {
-                yield return new Point3(x, BottomLeft.Y, BottomLeft.Z);
-                yield return new Point3(x, BottomLeft.Y, TopRight.Z - 1);
-                yield return new Point3(x, TopRight.Y - 1, BottomLeft.Z);
-                yield return new Point3(x, TopRight.Y - 1, TopRight.Z - 1);
-            }
-            for (int y = BottomLeft.Y; y < TopRight.Y; y++)
-            {
-                yield return new Point3(BottomLeft.X, y, BottomLeft.Z);
-                yield return new Point3(BottomLeft.X, y, TopRight.Z - 1);
-                yield return new Point3(TopRight.X - 1, y, BottomLeft.Z);
-                yield return new Point3(TopRight.X - 1, y, TopRight.Z - 1);
-            }
-            for (int z = BottomLeft.Z; z < TopRight.Z; z++)
-            {
-                yield return new Point3(BottomLeft.X, BottomLeft.Y, z);
-                yield return new Point3(BottomLeft.X, TopRight.Y - 1, z);
-                yield return new Point3(TopRight.X - 1, BottomLeft.Y, z);
-                yield return new Point3(TopRight.X - 1, TopRight.Y - 1, z);
-            }
+            // Inclusive bound that is still part of the cube
+            var inclBlound = TopRight.TranslateBy(-1, -1, -1);
+
+            yield return new LineSegmentX(BottomLeft.X, inclBlound.X, BottomLeft.Y, BottomLeft.Z);
+            yield return new LineSegmentX(BottomLeft.X, inclBlound.X, BottomLeft.Y, inclBlound.Z);
+            yield return new LineSegmentX(BottomLeft.X, inclBlound.X, inclBlound.Y, BottomLeft.Z);
+            yield return new LineSegmentX(BottomLeft.X, inclBlound.X, inclBlound.Y, inclBlound.Z);
+
+            yield return new LineSegmentY(BottomLeft.X, BottomLeft.Y, inclBlound.Y, BottomLeft.Z);
+            yield return new LineSegmentY(BottomLeft.X, BottomLeft.Y, inclBlound.Y, inclBlound.Z);
+            yield return new LineSegmentY(inclBlound.X, BottomLeft.Y, inclBlound.Y, BottomLeft.Z);
+            yield return new LineSegmentY(inclBlound.X, BottomLeft.Y, inclBlound.Y, inclBlound.Z);
+
+            yield return new LineSegmentZ(BottomLeft.X, BottomLeft.Y, BottomLeft.Z, inclBlound.Z);
+            yield return new LineSegmentZ(BottomLeft.X, inclBlound.Y, BottomLeft.Z, inclBlound.Z);
+            yield return new LineSegmentZ(inclBlound.X, BottomLeft.Y, BottomLeft.Z, inclBlound.Z);
+            yield return new LineSegmentZ(inclBlound.X, inclBlound.Y, BottomLeft.Z, inclBlound.Z);
         }
 
         public IEnumerable<Point3> GetEdgePoints()
@@ -103,19 +99,82 @@ namespace Core
         }
     }
 
-    internal struct LineSegmentX
+    public interface ILineSegment
     {
-        int MinX;
-        int MaxX;
-        int Y;
-        int Z;
+        public Point3 ClosestPointTo(Point3 p);
+    }
+
+    readonly struct LineSegmentX : ILineSegment
+    {
+        public readonly int MinX;
+        public readonly int MaxX;
+        public readonly int Y;
+        public readonly int Z;
+
+        public LineSegmentX(int x1, int x2, int y, int z)
+        {
+            MinX = x1;
+            MaxX = x2;
+            Y = y;
+            Z = z;
+        }
 
         public Point3 ClosestPointTo(Point3 p)
         {
-            if (p.X < MinX)
-            {
-                return
-            }
+            if (p.X <= MinX)
+                return new Point3(MinX, Y, Z);
+            if (p.X >= MaxX)
+                return new Point3(MaxX, Y, Z);
+            return new Point3(p.X, Y, Z);
+        }
+    }
+
+    readonly struct LineSegmentY : ILineSegment
+    {
+        public readonly int X;
+        public readonly int MinY;
+        public readonly int MaxY;
+        public readonly int Z;
+
+        public LineSegmentY(int x, int y1, int y2, int z)
+        {
+            X = x;
+            MinY = y1;
+            MaxY = y2;
+            Z = z;
+        }
+        public Point3 ClosestPointTo(Point3 p)
+        {
+            if (p.Y <= MinY)
+                return new Point3(X, MinY, Z);
+            if (p.Y >= MaxY)
+                return new Point3(X, MaxY, Z);
+            return new Point3(X, p.Y, Z);
+        }
+    }
+
+    readonly struct LineSegmentZ : ILineSegment
+    {
+        public readonly int X;
+        public readonly int Y;
+        public readonly int MinZ;
+        public readonly int MaxZ;
+
+        public LineSegmentZ(int x, int y, int z1, int z2)
+        {
+            X = x;
+            Y = y;
+            MinZ = z1;
+            MaxZ = z2;
+        }
+
+        public Point3 ClosestPointTo(Point3 p)
+        {
+            if (p.Z <= MinZ)
+                return new Point3(X, Y, MinZ);
+            if (p.Z >= MaxZ)
+                return new Point3(X, Y, MaxZ);
+            return new Point3(X, Y, p.Z);
         }
     }
 }
