@@ -46,5 +46,7 @@ namespace Core
         {
             return !(left == right);
         }
+
+        public override string ToString() => $"<X: {X}, Y: {Y}, Z: {Z}>";
     }
 }
