@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Core
 {
-    public class Graph<TNode, TEdge>
+    public class Graph<TNode, TEdge> where TNode : notnull
     {
         public ICollection<GraphNode<TNode, TEdge>> Nodes { get; private set; }
 
@@ -19,8 +19,8 @@ namespace Core
             var graphEdges = new List<GraphEdge<TNode, TEdge>>();
 
             var nodes = new Dictionary<TNode, GraphNode<TNode, TEdge>>();
-            var nodeFactory = new Func<TNode, GraphNode<TNode, TEdge>>(x => nodes.GetOrAdd(x, () => new GraphNode<TNode, TEdge>(x)));
-            
+            var nodeFactory = new Func<TNode, GraphNode<TNode, TEdge>>(x => nodes.GetOrAdd(x, _ => new GraphNode<TNode, TEdge>(x)));
+
             foreach (var edge in edgeValues)
             {
                 var (src, dest) = linker(edge);
@@ -30,7 +30,7 @@ namespace Core
                 //if (nodes.TryGetValue(src, out var node))
                 //{
                 //    graphEdges.Add(new GraphEdge<TNode, TEdge>(
-                    
+
                 //        edge,
                 //        node,
 
@@ -67,7 +67,7 @@ namespace Core
         public TNode Value { get; set; }
     }
 
-    public sealed class GraphEdge<TNode, TEdge> 
+    public sealed class GraphEdge<TNode, TEdge>
     {
         public GraphEdge(TEdge value, GraphNode<TNode, TEdge> source, GraphNode<TNode, TEdge> destination, Graph<TNode, TEdge> parentGraph)
         {

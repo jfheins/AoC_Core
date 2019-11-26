@@ -32,16 +32,12 @@ namespace Core
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> factory) where TKey : notnull
+        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TKey, TValue> factory) where TKey : notnull
         {
-            if (dict.ContainsKey(key))
-            {
-                return dict[key];
-            }
-
-            var value = factory();
-            dict.Add(key, value);
-            return value;
+            if (dict.TryGetValue(key, out var data))
+                return data;
+            else
+                return dict[key] = factory(key);
         }
 
         public static int[] ParseInts(this string str, int? count = null)
