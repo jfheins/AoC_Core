@@ -6,7 +6,7 @@ using Core;
 
 namespace Core
 {
-    public class Cube : IComparable<Cube>
+    public class Cube
     {
         public Point3 BottomLeft { get; set; }
 
@@ -15,19 +15,11 @@ namespace Core
         /// </summary>
         public Point3 TopRight => BottomLeft.TranslateBy(SideLength, SideLength, SideLength);
         public int SideLength { get; set; }
-        public IPriorityQueueHandle<Cube> Handle { get; set; } = null;
-
-        public int NanobotsInRange { get; set; } = 0;
 
         public Cube(Point3 root, int side)
         {
             BottomLeft = root;
             SideLength = side;
-        }
-
-        public int CompareTo(Cube other)
-        {
-            return NanobotsInRange.CompareTo(other.NanobotsInRange);
         }
 
         public Point3 Center => BottomLeft.TranslateBy(SideLength / 2, SideLength / 2, SideLength / 2);
@@ -53,33 +45,11 @@ namespace Core
             yield return new LineSegmentZ(inclBlound.X, inclBlound.Y, BottomLeft.Z, inclBlound.Z);
         }
 
-        public IEnumerable<Point3> GetEdgePoints()
-        {
-            for (int x = BottomLeft.X; x < TopRight.X; x++)
-            {
-                yield return new Point3(x, BottomLeft.Y, BottomLeft.Z);
-                yield return new Point3(x, BottomLeft.Y, TopRight.Z - 1);
-                yield return new Point3(x, TopRight.Y - 1, BottomLeft.Z);
-                yield return new Point3(x, TopRight.Y - 1, TopRight.Z - 1);
-            }
-            for (int y = BottomLeft.Y; y < TopRight.Y; y++)
-            {
-                yield return new Point3(BottomLeft.X, y, BottomLeft.Z);
-                yield return new Point3(BottomLeft.X, y, TopRight.Z - 1);
-                yield return new Point3(TopRight.X - 1, y, BottomLeft.Z);
-                yield return new Point3(TopRight.X - 1, y, TopRight.Z - 1);
-            }
-            for (int z = BottomLeft.Z; z < TopRight.Z; z++)
-            {
-                yield return new Point3(BottomLeft.X, BottomLeft.Y, z);
-                yield return new Point3(BottomLeft.X, TopRight.Y - 1, z);
-                yield return new Point3(TopRight.X - 1, BottomLeft.Y, z);
-                yield return new Point3(TopRight.X - 1, TopRight.Y - 1, z);
-            }
-        }
-
         public static IEnumerable<Cube> Split(Cube c)
         {
+            if (c == null)
+                throw new ArgumentNullException(nameof(c));
+
             var halfSide = c.SideLength / 2;
             yield return new Cube(c.BottomLeft, halfSide);
             yield return new Cube(c.BottomLeft.TranslateBy(halfSide, 0, 0), halfSide);
