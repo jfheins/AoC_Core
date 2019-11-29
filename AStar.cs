@@ -32,6 +32,15 @@ namespace Core
             return result.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Searches and finds all target nodes in the domain. If the domain is infinite, minResults should be filled.
+        /// </summary>
+        /// <param name="initialNode">Starting node for the search</param>
+        /// <param name="targetPredicate">Must return true for a desired target</param>
+        /// <param name="heuristic">Must return an estimate of the remaining cost. May underestimate but not overestimate.</param>
+        /// <param name="progressReporter">Called periodically for status updates</param>
+        /// <param name="minResults">Search will be terminated if at least this number of targets has been found.</param>
+        /// <returns></returns>
         public SCG.IList<AStarPath> FindAll(TNode initialNode,
                                                Func<TNode, bool> targetPredicate,
                                                Func<TNode, float> heuristic,
@@ -46,15 +55,14 @@ namespace Core
 
             var visitedNodes = new HashSet<TNode>(_comparer);
             var nodeQueue = new IntervalHeap<AStarNode>();
-            var openSet = new SCG.Dictionary<TNode, AStarNode>();
+            var openSet = new SCG.Dictionary<TNode, IPriorityQueueHandle<AStarNode>>();
 
             // Helper methods
             void QueueNewNode(AStarNode node)
             {
                 IPriorityQueueHandle<AStarNode>? handle = null;
                 _ = nodeQueue.Add(ref handle, node);
-                node.Handle = handle;
-                openSet[node.Item] = node;
+                openSet[node.Item] = handle;
             }
             AStarNode PopMinNode()
             {
@@ -62,20 +70,21 @@ namespace Core
                 _ = openSet.Remove(nextNode.Item);
                 return nextNode;
             }
-            void QueueOrUpdateNode(AStarNode newNode)
+            void QueueOrUpdateNode(AStarNode currentNode, (TNode target, float cost) edge)
             {
-                if (openSet.TryGetValue(newNode.Item, out var existing))
+                var newCost = currentNode.Cost + edge.cost;
+                if (openSet.TryGetValue(edge.target, out var existingHandle))
                 {
-                    if (existing.Cost > newNode.Cost)
+                    if (nodeQueue.Find(existingHandle, out var existing) && newCost < existing.Cost)
                     {
-                        _ = nodeQueue.Replace(existing.Handle, newNode);
-                        newNode.Handle = existing.Handle;
-                        openSet[newNode.Item] = newNode;
+                        var newNode = new AStarNode(edge.target, currentNode, edge.cost, existing.Remaining);
+                        _ = nodeQueue.Replace(existingHandle, newNode);
+                        openSet[newNode.Item] = existingHandle;
                     }
                 }
                 else
                 {
-                    QueueNewNode(newNode);
+                    QueueNewNode(new AStarNode(edge.target, currentNode, edge.cost, heuristic(edge.target)));
                 }
             }
 
@@ -102,13 +111,11 @@ namespace Core
                 }
 
                 var expanded = _expander(currentNode.Item)
-                    .Where(step => !visitedNodes.Contains(step.node))
-                    .Select(step => new AStarNode(step.node, currentNode, step.cost, heuristic(step.node)))
-                    .ToList();
+                    .Where(step => !visitedNodes.Contains(step.node));
 
-                foreach (var newNode in expanded)
+                foreach (var edge in expanded)
                 {
-                    QueueOrUpdateNode(newNode);
+                    QueueOrUpdateNode(currentNode, edge);
                 }
             }
 
@@ -162,7 +169,6 @@ namespace Core
 
             public TNode Item { get; }
             private AStarNode Predecessor { get; }
-            public IPriorityQueueHandle<AStarNode>? Handle { get; set; }
 
             public int CompareTo(AStarNode other) => OverallEstimate.CompareTo(other.OverallEstimate);
 
