@@ -118,7 +118,7 @@ namespace Core
         {
             private readonly IComparer<TValue> _priorityComparer;
 
-            public KvpByValueComparer(IComparer<TValue> priorityComparer = null)
+            public KvpByValueComparer(IComparer<TValue>? priorityComparer = null)
             {
                 _priorityComparer = priorityComparer ?? Comparer<TValue>.Default;
             }

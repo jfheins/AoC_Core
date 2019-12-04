@@ -174,13 +174,10 @@ namespace Core
 
             public float Cost { get; }
             public TNode Item { get; }
-            private DijkstraNode Predecessor { get; }
+            private DijkstraNode? Predecessor { get; }
             public IPriorityQueueHandle<DijkstraNode>? Handle { get; set; }
 
-            public int CompareTo(DijkstraNode other)
-            {
-                return Cost.CompareTo(other.Cost);
-            }
+            public int CompareTo(DijkstraNode other) => Cost.CompareTo(other.Cost);
 
             public SCG.IEnumerable<TNode> GetHistory()
             {

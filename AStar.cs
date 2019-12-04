@@ -152,6 +152,7 @@ namespace Core
                 Item = initial;
                 Predecessor = null;
                 Cost = 0f;
+                Remaining = remainder;
             }
 
             internal AStarNode(TNode current, AStarNode predecessor, float edgeCost = 0, float remainder = 0)
@@ -168,7 +169,7 @@ namespace Core
             public float OverallEstimate => Cost + Remaining;
 
             public TNode Item { get; }
-            private AStarNode Predecessor { get; }
+            private AStarNode? Predecessor { get; }
 
             public int CompareTo(AStarNode other) => OverallEstimate.CompareTo(other.OverallEstimate);
 

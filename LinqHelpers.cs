@@ -147,6 +147,31 @@ namespace Core
             }
         }
 
+        public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable)
+        {
+            var current = enumerable.First();
+            var list = new List<T>();
+            foreach (var item in enumerable)
+            {
+                if (item!.Equals(current))
+                {
+                    list.Add(item);
+                }
+                else
+                {
+                    yield return list;
+                    list = new List<T>();
+                    list.Add(item);
+                    current = item;
+                }
+            }
+            if (list.Count > 0)
+            {
+
+                yield return list;
+            }
+        }
+
         // https://stackoverflow.com/questions/419019/split-list-into-sublists-with-linq/20953521#20953521
         public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable,
             int chunkSize)
