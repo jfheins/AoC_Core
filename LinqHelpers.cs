@@ -128,7 +128,7 @@ namespace Core
             }
         }
 
-        public static IEnumerable<Tuple<T, T>> Pairwise<T>(this IEnumerable<T> source)
+        public static IEnumerable<ValueTuple<T, T>> Pairwise<T>(this IEnumerable<T> source)
         {
             var isPair = false;
             var tempItem = default(T);
@@ -136,7 +136,7 @@ namespace Core
             {
                 if (isPair)
                 {
-                    yield return Tuple.Create(tempItem, item);
+                    yield return ValueTuple.Create(tempItem, item);
                     isPair = false;
                 }
                 else
@@ -149,27 +149,31 @@ namespace Core
 
         public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable)
         {
-            var current = enumerable.First();
-            var list = new List<T>();
-            foreach (var item in enumerable)
+            var chunk = new List<T>();
+            var reference = default(T);
+
+            using var e = enumerable.GetEnumerator();
+            while (e.MoveNext())
             {
-                if (item!.Equals(current))
+                if (chunk.Count == 0)
                 {
-                    list.Add(item);
+                    reference = e.Current;
+                    chunk.Add(e.Current);
+                }
+                else if (e.Current!.Equals(reference))
+                {
+                    chunk.Add(e.Current);
                 }
                 else
                 {
-                    yield return list;
-                    list = new List<T>();
-                    list.Add(item);
-                    current = item;
+                    yield return chunk;
+                    chunk = new List<T>();
+                    reference = e.Current;
+                    chunk.Add(e.Current);
                 }
             }
-            if (list.Count > 0)
-            {
-
-                yield return list;
-            }
+            if (chunk.Count > 0)
+                yield return chunk;
         }
 
         // https://stackoverflow.com/questions/419019/split-list-into-sublists-with-linq/20953521#20953521
