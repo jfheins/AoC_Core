@@ -46,6 +46,7 @@ namespace Core
             {
                 StepCount++;
                 var op = GetOpCode();
+                int arg0, arg1;
                 switch (op)
                 {
                     case OpCode.Add:
@@ -55,25 +56,38 @@ namespace Core
                         ExecuteInstruction((a, b) => a * b);
                         break;
                     case OpCode.Load:
-                        var arg1 = Memory[InstructionPointer++];
-                        Memory[arg1] = getInput();
+                        arg0 = Memory[InstructionPointer++];
+                        Memory[arg0] = getInput();
                         break;
                     case OpCode.Store:
-                        var arg = Memory[InstructionPointer++];
-                        setOutput(Memory[arg]);
+                        arg0 = Memory[InstructionPointer++];
+                        setOutput(Memory[arg0]);
                         break;
+
                     case OpCode.JmpIfTrue:
+                        arg0 = GetArgument(_parameterModes[0]);
+                        arg1 = GetArgument(_parameterModes[1]);
+                        if (arg0 != 0)
+                            InstructionPointer = arg1;
                         break;
+
                     case OpCode.JmpIfFalse:
+                        arg0 = GetArgument(_parameterModes[0]);
+                        arg1 = GetArgument(_parameterModes[1]);
+                        if (arg0 == 0)
+                            InstructionPointer = arg1;
                         break;
+
                     case OpCode.LessThan:
+                        ExecuteInstruction((a, b) => a < b ? 1 : 0);
                         break;
                     case OpCode.Equals:
+                        ExecuteInstruction((a, b) => a == b ? 1 : 0);
                         break;
                     case OpCode.Halt:
                         return;
                     default:
-                        throw new InvalidOperationException("Unknown opcode");
+                        throw new InvalidOperationException("Unknown opcode: " + op);
                 }
             }
         }
