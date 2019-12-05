@@ -38,14 +38,12 @@ namespace Core
 
         private void setOutput(int value) => Outputs.Add(value);
 
-        private int[] _parameterModes = new int[4];
-
         public void Run(int maxSteps = int.MaxValue)
         {
             while (maxSteps-- > 0)
             {
                 StepCount++;
-                var op = GetOpCode();
+                var op = GetInstruction();
                 int arg0, arg1;
                 switch (op)
                 {
@@ -92,18 +90,17 @@ namespace Core
             }
         }
 
-        private int GetArgument(int mode)
+        private int GetNextArgument(ParameterMode mode)
         {
             var argument = Memory[InstructionPointer++];
-            if (mode == 0)
-            {
+
+            if (mode == ParameterMode.PositionMode)
                 return Memory[argument];
-            }
-            else if (mode == 1)
-            {
+
+            if (mode == ParameterMode.ImmediateMode)
                 return argument;
-            }
-            return 0;
+
+            throw new InvalidOperationException("Unknown parameter mode: " + mode);
         }
 
         private void ExecuteInstruction(Func<int, int, int> action)
@@ -122,20 +119,53 @@ namespace Core
         //}
 
 
+        private Instruction GetInstruction()
+        {
+            Memory.AsMemory(c)
+        }
+
+
         private OpCode GetOpCode()
         {
             var instruction = Memory[InstructionPointer++];
-            var opcode = (OpCode)(instruction % 100);
-            instruction /= 100;
 
-            for (var i = 0; i < _parameterModes.Length; i++)
-            {
-                _parameterModes[i] = instruction % 10;
-                instruction /= 10;
-            }
 
             return opcode;
         }
+
+        private struct Instruction
+        {
+            public OpCode OpCode { get; }
+            public readonly ParameterMode[] _parameterModes;
+
+            public int Location { get; }
+
+            public Instruction(int location, int instruction)
+            {
+                Location = location;
+                OpCode = (OpCode)(instruction % 100);
+                instruction /= 100;
+                _parameterModes = new ParameterMode[4];
+                for (var i = 0; i < _parameterModes.Length; i++)
+                {
+                    _parameterModes[i] = (ParameterMode)(instruction % 10);
+                    instruction /= 10;
+                }
+            }
+
+            public override string ToString()
+            {
+                return $"{OpCode} at {Location}";
+            }
+        }
+    }
+
+
+
+    public enum ParameterMode
+    {
+        PositionMode = 0,
+        ImmediateMode = 1
     }
 
     public enum OpCode
