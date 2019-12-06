@@ -53,7 +53,7 @@ namespace Core
                                       Func<NodeWithPredecessor, bool> targetPredicate,
                                       ProgressReporterCallback? progressReporter = null)
         {
-            var result = FindAll(initialNode, targetPredicate, progressReporter, 1);
+            var result = FindAll2(initialNode, targetPredicate, progressReporter, 1);
             return result.FirstOrDefault();
         }
 
@@ -64,11 +64,11 @@ namespace Core
                                            ProgressReporterCallback? progressReporter = null,
                                            int minResults = int.MaxValue)
         {
-            return FindAll(initialNode, bfsnode => targetPredicate(bfsnode.Item), progressReporter, minResults);
+            return FindAll2(initialNode, bfsnode => targetPredicate(bfsnode.Item), progressReporter, minResults);
         }
 
         [NotNull]
-        public IList<IPath<TNode>> FindAll(TNode initialNode,
+        public IList<IPath<TNode>> FindAll2(TNode initialNode,
                                            Func<NodeWithPredecessor, bool> targetPredicate,
                                            ProgressReporterCallback? progressReporter = null,
                                            int minResults = int.MaxValue)

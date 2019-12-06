@@ -40,6 +40,13 @@ namespace Core
                 return dict[key] = factory(key);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
+        public static IEnumerable<TValue> GetOrEmpty<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key) where TKey : notnull
+        {
+            if (dict.TryGetValue(key, out var data))
+                yield return data;
+        }
+
         public static int[] ParseInts(this string str, int? count = null)
         {
             var regex = new Regex(@"([-+]?[0-9]+)");
