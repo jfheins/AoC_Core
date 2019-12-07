@@ -34,150 +34,126 @@ namespace Core
         }
 
         private int _inputIdx = 0;
-        private int getInput() => Inputs[_inputIdx++];
 
-        private void setOutput(int value) => Outputs.Add(value);
+        private int GetInput() => Inputs[_inputIdx++];
+
+        private void SetOutput(int value) => Outputs.Add(value);
 
         public void Run(int maxSteps = int.MaxValue)
         {
             while (maxSteps-- > 0)
             {
                 StepCount++;
-                var op = GetInstruction();
-                int arg0, arg1;
-                switch (op)
+                var instruction = GetInstruction();
+
+                switch (instruction.OpCode)
                 {
                     case OpCode.Add:
-                        ExecuteInstruction((a, b) => a + b);
+                        ExecuteInstruction(instruction, (a, b) => a + b);
                         break;
                     case OpCode.Mul:
-                        ExecuteInstruction((a, b) => a * b);
+                        ExecuteInstruction(instruction, (a, b) => a * b);
                         break;
                     case OpCode.Load:
-                        arg0 = Memory[InstructionPointer++];
-                        Memory[arg0] = getInput();
+                        ExecuteInstruction(GetInput);
                         break;
                     case OpCode.Store:
-                        arg0 = Memory[InstructionPointer++];
-                        setOutput(Memory[arg0]);
+                        var arg0 = Memory[InstructionPointer++];
+                        SetOutput(Memory[arg0]);
                         break;
 
                     case OpCode.JmpIfTrue:
-                        arg0 = GetArgument(_parameterModes[0]);
-                        arg1 = GetArgument(_parameterModes[1]);
-                        if (arg0 != 0)
-                            InstructionPointer = arg1;
+                        _ = EvaluateInstruction(instruction, (a, b) => a != 0 ? InstructionPointer = b : 0);
                         break;
-
                     case OpCode.JmpIfFalse:
-                        arg0 = GetArgument(_parameterModes[0]);
-                        arg1 = GetArgument(_parameterModes[1]);
-                        if (arg0 == 0)
-                            InstructionPointer = arg1;
+                        _ = EvaluateInstruction(instruction, (a, b) => a == 0 ? InstructionPointer = b : 0);
                         break;
 
                     case OpCode.LessThan:
-                        ExecuteInstruction((a, b) => a < b ? 1 : 0);
+                        ExecuteInstruction(instruction, (a, b) => a < b ? 1 : 0);
                         break;
                     case OpCode.Equals:
-                        ExecuteInstruction((a, b) => a == b ? 1 : 0);
+                        ExecuteInstruction(instruction, (a, b) => a == b ? 1 : 0);
                         break;
+
                     case OpCode.Halt:
                         return;
                     default:
-                        throw new InvalidOperationException("Unknown opcode: " + op);
+                        throw new InvalidOperationException("Unknown opcode: " + instruction);
                 }
             }
         }
 
-        private int GetNextArgument(ParameterMode mode)
+        private int GetNextArg(Instruction instruction)
         {
+            var paramIndex = InstructionPointer - (instruction.Location + 1);
             var argument = Memory[InstructionPointer++];
 
-            if (mode == ParameterMode.PositionMode)
-                return Memory[argument];
-
-            if (mode == ParameterMode.ImmediateMode)
-                return argument;
-
-            throw new InvalidOperationException("Unknown parameter mode: " + mode);
+            return (instruction.ParameterModes[paramIndex]) switch
+            {
+                ParameterMode.PositionMode => Memory[argument],
+                ParameterMode.ImmediateMode => argument,
+                _ => throw new InvalidOperationException("Unknown parameter mode: " + instruction.ParameterModes[paramIndex]),
+            };
         }
 
-        private void ExecuteInstruction(Func<int, int, int> action)
+        private void ExecuteInstruction(Instruction instruction, Func<int, int, int> action)
+            => Memory[Memory[InstructionPointer++]] = EvaluateInstruction(instruction, action);
+
+        private int EvaluateInstruction(Instruction instruction, Func<int, int, int> action)
+            => action(GetNextArg(instruction), GetNextArg(instruction));
+
+        private void ExecuteInstruction(Func<int> action)
         {
-            var arg1 = GetArgument(_parameterModes[0]);
-            var arg2 = GetArgument(_parameterModes[1]);
-            var result = action(arg1, arg2);
-            Memory[Memory[InstructionPointer++]] = result;
-        }
-
-        //private void ExecuteInstruction(Func<int, int> action)
-        //{
-        //    var arg1 = Memory[Memory[InstructionPointer++]];
-        //    var result = action(arg1);
-        //    Memory[Memory[InstructionPointer++]] = result;
-        //}
-
-
-        private Instruction GetInstruction()
-        {
-            Memory.AsMemory(c)
+            Memory[Memory[InstructionPointer++]] = action();
         }
 
 
-        private OpCode GetOpCode()
-        {
-            var instruction = Memory[InstructionPointer++];
-
-
-            return opcode;
-        }
+        private Instruction GetInstruction() => new Instruction(Memory[InstructionPointer], InstructionPointer++);
 
         private struct Instruction
         {
             public OpCode OpCode { get; }
-            public readonly ParameterMode[] _parameterModes;
+            public readonly ParameterMode[] ParameterModes;
 
-            public int Location { get; }
+            public readonly int Location { get; }
 
-            public Instruction(int location, int instruction)
+            public Instruction(int instructionCode, int location)
             {
                 Location = location;
-                OpCode = (OpCode)(instruction % 100);
-                instruction /= 100;
-                _parameterModes = new ParameterMode[4];
-                for (var i = 0; i < _parameterModes.Length; i++)
+
+                OpCode = (OpCode)(instructionCode % 100);
+                instructionCode /= 100;
+                ParameterModes = new ParameterMode[4];
+
+                for (int i = 0; i < ParameterModes.Length; i++)
                 {
-                    _parameterModes[i] = (ParameterMode)(instruction % 10);
-                    instruction /= 10;
+                    ParameterModes[i] = (ParameterMode)(instructionCode % 10);
+                    instructionCode /= 10;
                 }
             }
 
-            public override string ToString()
-            {
-                return $"{OpCode} at {Location}";
-            }
+            public override string ToString() => $"{OpCode} at {Location}";
         }
-    }
 
 
+        public enum ParameterMode
+        {
+            PositionMode = 0,
+            ImmediateMode = 1
+        }
 
-    public enum ParameterMode
-    {
-        PositionMode = 0,
-        ImmediateMode = 1
-    }
-
-    public enum OpCode
-    {
-        Add = 1,
-        Mul = 2,
-        Load = 3,
-        Store = 4,
-        JmpIfTrue = 5,
-        JmpIfFalse = 6,
-        LessThan = 7,
-        Equals = 8,
-        Halt = 99
+        public enum OpCode
+        {
+            Add = 1,
+            Mul = 2,
+            Load = 3,
+            Store = 4,
+            JmpIfTrue = 5,
+            JmpIfFalse = 6,
+            LessThan = 7,
+            Equals = 8,
+            Halt = 99
+        }
     }
 }
