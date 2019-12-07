@@ -11,8 +11,9 @@ namespace Core
         public int InstructionPointer { get; private set; }
         public int StepCount { get; private set; }
 
-        public List<int> Inputs { get; } = new List<int>();
-        public List<int> Outputs { get; } = new List<int>();
+        public Queue<int> Inputs { get; } = new Queue<int>();
+        public Queue<int> Outputs { get; } = new Queue<int>();
+        private Instruction CurrentInstruction { get; set; }
 
         public IntCodeComputer(int[] initialState)
         {
@@ -33,54 +34,70 @@ namespace Core
             return result;
         }
 
-        private int _inputIdx = 0;
+        private int GetInput() => Inputs.Dequeue();
 
-        private int GetInput() => Inputs[_inputIdx++];
+        private void SetOutput(int value) => Outputs.Enqueue(value);
 
-        private void SetOutput(int value) => Outputs.Add(value);
+        /// <summary>
+        /// Adds the given input and runs the computer until an output occurs.
+        /// Returns the first output or null, if the comuter halts.
+        /// </summary>
+        public int? RunWith(int input)
+        {
+            Inputs.Enqueue(input);
+            while (CurrentInstruction.OpCode != OpCode.Halt)
+            {
+                ExecuteStep();
+                if (CurrentInstruction.OpCode == OpCode.Store)
+                    return Outputs.Dequeue();
+            }
+            return null;
+        }
 
         public void Run(int maxSteps = int.MaxValue)
         {
-            while (maxSteps-- > 0)
+            while (maxSteps-- > 0 && CurrentInstruction.OpCode != OpCode.Halt)
+                ExecuteStep();
+        }
+
+        private void ExecuteStep()
+        {
+            StepCount++;
+            CurrentInstruction = GetInstruction();
+
+            switch (CurrentInstruction.OpCode)
             {
-                StepCount++;
-                var instruction = GetInstruction();
+                case OpCode.Add:
+                    ExecuteInstruction(CurrentInstruction, (a, b) => a + b);
+                    break;
+                case OpCode.Mul:
+                    ExecuteInstruction(CurrentInstruction, (a, b) => a * b);
+                    break;
+                case OpCode.Load:
+                    ExecuteInstruction(GetInput);
+                    break;
+                case OpCode.Store:
+                    ExecuteInstruction(CurrentInstruction, a => SetOutput(a));
+                    break;
 
-                switch (instruction.OpCode)
-                {
-                    case OpCode.Add:
-                        ExecuteInstruction(instruction, (a, b) => a + b);
-                        break;
-                    case OpCode.Mul:
-                        ExecuteInstruction(instruction, (a, b) => a * b);
-                        break;
-                    case OpCode.Load:
-                        ExecuteInstruction(GetInput);
-                        break;
-                    case OpCode.Store:
-                        var arg0 = Memory[InstructionPointer++];
-                        SetOutput(Memory[arg0]);
-                        break;
+                case OpCode.JmpIfTrue:
+                    _ = EvaluateInstruction(CurrentInstruction, (a, b) => a != 0 ? InstructionPointer = b : 0);
+                    break;
+                case OpCode.JmpIfFalse:
+                    _ = EvaluateInstruction(CurrentInstruction, (a, b) => a == 0 ? InstructionPointer = b : 0);
+                    break;
 
-                    case OpCode.JmpIfTrue:
-                        _ = EvaluateInstruction(instruction, (a, b) => a != 0 ? InstructionPointer = b : 0);
-                        break;
-                    case OpCode.JmpIfFalse:
-                        _ = EvaluateInstruction(instruction, (a, b) => a == 0 ? InstructionPointer = b : 0);
-                        break;
+                case OpCode.LessThan:
+                    ExecuteInstruction(CurrentInstruction, (a, b) => a < b ? 1 : 0);
+                    break;
+                case OpCode.Equals:
+                    ExecuteInstruction(CurrentInstruction, (a, b) => a == b ? 1 : 0);
+                    break;
 
-                    case OpCode.LessThan:
-                        ExecuteInstruction(instruction, (a, b) => a < b ? 1 : 0);
-                        break;
-                    case OpCode.Equals:
-                        ExecuteInstruction(instruction, (a, b) => a == b ? 1 : 0);
-                        break;
-
-                    case OpCode.Halt:
-                        return;
-                    default:
-                        throw new InvalidOperationException("Unknown opcode: " + instruction);
-                }
+                case OpCode.Halt:
+                    return;
+                default:
+                    throw new InvalidOperationException("Unknown opcode: " + CurrentInstruction.OpCode);
             }
         }
 
