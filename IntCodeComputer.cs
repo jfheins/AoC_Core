@@ -98,15 +98,19 @@ namespace Core
         }
 
         private void ExecuteInstruction(Instruction instruction, Func<int, int, int> action)
-            => Memory[Memory[InstructionPointer++]] = EvaluateInstruction(instruction, action);
+        {
+            var result = EvaluateInstruction(instruction, action);
+            Memory[Memory[InstructionPointer++]] = result;
+        }
 
         private int EvaluateInstruction(Instruction instruction, Func<int, int, int> action)
             => action(GetNextArg(instruction), GetNextArg(instruction));
 
         private void ExecuteInstruction(Func<int> action)
-        {
-            Memory[Memory[InstructionPointer++]] = action();
-        }
+            => Memory[Memory[InstructionPointer++]] = action();
+
+        private void ExecuteInstruction(Instruction instruction, Action<int> action)
+            => action(GetNextArg(instruction));
 
 
         private Instruction GetInstruction() => new Instruction(Memory[InstructionPointer], InstructionPointer++);
