@@ -14,9 +14,16 @@ namespace Core
         public List<int> Inputs { get; } = new List<int>();
         public List<int> Outputs { get; } = new List<int>();
 
+        public OpCode CurrentInstruction { get; private set; }
+
         public IntCodeComputer(int[] initialState)
         {
             Memory = Clone(initialState);
+        }
+
+        public IntCodeComputer(int[] initialState, int firstInput) : this(initialState)
+        {
+            Inputs.Add(firstInput);
         }
 
         public IntCodeComputer(int[] initialState, IDictionary<int, int> stateOverride) : this(initialState)
@@ -40,14 +47,15 @@ namespace Core
 
         private int[] _parameterModes = new int[4];
 
-        public void Run(int maxSteps = int.MaxValue)
+
+        public void Run(int maxSteps = int.MaxValue, bool stopOnOutput = false)
         {
             while (maxSteps-- > 0)
             {
                 StepCount++;
-                var op = GetOpCode();
+                CurrentInstruction = GetOpCode();
                 int arg0, arg1;
-                switch (op)
+                switch (CurrentInstruction)
                 {
                     case OpCode.Add:
                         ExecuteInstruction((a, b) => a + b);
@@ -62,7 +70,10 @@ namespace Core
                     case OpCode.Store:
                         arg0 = Memory[InstructionPointer++];
                         setOutput(Memory[arg0]);
-                        break;
+                        if (stopOnOutput)
+                            return;
+                        else
+                            break;
 
                     case OpCode.JmpIfTrue:
                         arg0 = GetArgument(_parameterModes[0]);
@@ -87,7 +98,7 @@ namespace Core
                     case OpCode.Halt:
                         return;
                     default:
-                        throw new InvalidOperationException("Unknown opcode: " + op);
+                        throw new InvalidOperationException("Unknown opcode: " + CurrentInstruction);
                 }
             }
         }
