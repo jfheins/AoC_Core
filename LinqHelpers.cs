@@ -68,6 +68,18 @@ namespace Core
             return matches.Select(match => int.Parse(match.Value)).ToArray();
         }
 
+        public static long[] ParseLongs(this string str, int? count = null)
+        {
+            var regex = new Regex(@"([-+]?[0-9]+)");
+            var matches = regex.Matches(str);
+            if (count != null)
+            {
+                Debug.Assert(matches.Count == count);
+            }
+
+            return matches.Select(match => long.Parse(match.Value)).ToArray();
+        }
+
         public static IEnumerable<ValueTuple<T1, T2>> CartesianProduct<T1, T2>(this IEnumerable<T1> a,
             IEnumerable<T2> b)
         {
