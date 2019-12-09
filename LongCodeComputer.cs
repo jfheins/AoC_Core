@@ -29,7 +29,7 @@ namespace Core
         public Queue<long> Outputs { get; } = new Queue<long>();
 
 
-        private readonly SortedDictionary<int, long> _memory;
+        private readonly Dictionary<int, long> _memory;
         private Instruction _currentInstruction;
         private int _relativeBase = 0;
 
@@ -39,12 +39,9 @@ namespace Core
             if (initialState == null)
                 throw new ArgumentException("Initial state must be provided!");
 
-            _memory = new SortedDictionary<int, long>();
-
-            for (int i = 0; i < initialState.Length; i++)
-            {
-                _memory[i] = initialState[i];
-            }
+            _memory = initialState
+                .Select((a, i) => (data: a, index: i))
+                .ToDictionary(x => x.index, x => x.data);
         }
 
         public LongCodeComputer(long[] initialState, long firstInput) : this(initialState)
