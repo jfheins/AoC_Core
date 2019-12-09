@@ -1,30 +1,50 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Core
 {
+
     public class LongCodeComputer
     {
-        public long[] Memory => _memory.Values.ToArray();
-        public Dictionary<int, long> _memory { get; private set; }
-
+        public IReadOnlyList<long> Memory
+        {
+            get
+            {
+                var length = _memory.Max(kvp => kvp.Key) + 1;
+                var list = new List<long>(length);
+                for (int i = 0; i < length; i++)
+                {
+                    list.Add(_memory.GetValueOrDefault(i, 0));
+                }
+                return list;
+            }
+        }
         public int InstructionPointer { get; private set; }
         public int StepCount { get; private set; }
-
+        public OpCode CurrentOpcode => _currentInstruction.OpCode;
         public Queue<long> Inputs { get; } = new Queue<long>();
         public Queue<long> Outputs { get; } = new Queue<long>();
 
+
+        private readonly SortedDictionary<int, long> _memory;
         private Instruction _currentInstruction;
         private int _relativeBase = 0;
 
-        public OpCode CurrentOpcode => _currentInstruction.OpCode;
 
         public LongCodeComputer(long[] initialState)
         {
-            _memory = initialState.Select((a, i) => (data: a, index: i))
-                .ToDictionary(x => x.index, x => x.data);
+            if (initialState == null)
+                throw new ArgumentException("Initial state must be provided!");
+
+            _memory = new SortedDictionary<int, long>();
+
+            for (int i = 0; i < initialState.Length; i++)
+            {
+                _memory[i] = initialState[i];
+            }
         }
 
         public LongCodeComputer(long[] initialState, long firstInput) : this(initialState)
@@ -54,7 +74,7 @@ namespace Core
             while (CurrentOpcode != OpCode.Halt)
             {
                 ExecuteStep();
-                if (CurrentOpcode == OpCode.Store)
+                if (CurrentOpcode == OpCode.SaveOutput)
                     return Outputs.Dequeue();
             }
             return null;
@@ -74,34 +94,34 @@ namespace Core
             switch (_currentInstruction.OpCode)
             {
                 case OpCode.Add:
-                    ExecuteInstruction(_currentInstruction, (a, b) => checked(a + b));
+                    ExecuteInstruction((a, b) => checked(a + b));
                     break;
                 case OpCode.Mul:
-                    ExecuteInstruction(_currentInstruction, (a, b) => checked(a * b));
+                    ExecuteInstruction((a, b) => checked(a * b));
                     break;
-                case OpCode.Load:
+                case OpCode.ReadInput:
                     ExecuteInstruction(GetInput);
                     break;
-                case OpCode.Store:
-                    ExecuteInstruction(_currentInstruction, a => SetOutput(a));
+                case OpCode.SaveOutput:
+                    ExecuteInstruction(a => SetOutput(a));
                     break;
 
                 case OpCode.JmpIfTrue:
-                    _ = EvaluateInstruction(_currentInstruction, (a, b) => a != 0 ? InstructionPointer = (int)b : 0);
+                    EvaluateJumpInstruction(x => x != 0);
                     break;
                 case OpCode.JmpIfFalse:
-                    _ = EvaluateInstruction(_currentInstruction, (a, b) => a == 0 ? InstructionPointer = (int)b : 0);
+                    EvaluateJumpInstruction(x => x == 0);
                     break;
 
                 case OpCode.LessThan:
-                    ExecuteInstruction(_currentInstruction, (a, b) => a < b ? 1 : 0);
+                    ExecuteInstruction((a, b) => a < b ? 1 : 0);
                     break;
                 case OpCode.Equals:
-                    ExecuteInstruction(_currentInstruction, (a, b) => a == b ? 1 : 0);
+                    ExecuteInstruction((a, b) => a == b ? 1 : 0);
                     break;
 
                 case OpCode.SetRelativeBase:
-                    ExecuteInstruction(_currentInstruction, a => _relativeBase = (int)(_relativeBase + a));
+                    _relativeBase += (int)GetNextArg();
                     break;
 
                 case OpCode.Halt:
@@ -110,25 +130,63 @@ namespace Core
                     throw new InvalidOperationException("Unknown opcode: " + _currentInstruction.OpCode);
             }
         }
+        private Instruction GetInstruction()
+            => new Instruction(_memory[InstructionPointer], InstructionPointer++);
 
 
-        private long GetNextArg(Instruction instruction)
+        private long EvaluateInstruction(Func<long, long, long> action)
+            => action(GetNextArg(), GetNextArg());
+
+        private void EvaluateJumpInstruction(Func<long, bool> condition)
+            => EvaluateInstruction((a, b) => condition(a) ? InstructionPointer = (int)b : 0);
+
+        private void ExecuteInstruction(Func<long, long, long> action)
         {
-            var paramIndex = InstructionPointer - (instruction.Location + 1);
-            var argument = (int)_memory.GetOrAdd(InstructionPointer++, 0);
+            var result = EvaluateInstruction(action);
+            var resultAddress = GetNextAddr(_currentInstruction);
+            Store(resultAddress, result);
+        }
 
-            return (instruction.ParameterModes[paramIndex]) switch
+        private void ExecuteInstruction(Func<long> action)
+        {
+            var resultAddress = GetNextAddr(_currentInstruction);
+            Store(resultAddress, action());
+        }
+
+        private void ExecuteInstruction(Action<long> action)
+            => action(GetNextArg());
+
+
+        private long Load(int address)
+        {
+            if (address < 0)
+                throw new InvalidOperationException("Negative addresses are forbidden!");
+            return _memory.GetOrAdd(address, 0);
+        }
+
+        private void Store(int address, long value)
+        {
+            _memory[address] = value;
+        }
+
+        private long GetNextArg()
+        {
+            var paramIndex = InstructionPointer - (_currentInstruction.Location + 1);
+            var paramMode = _currentInstruction.ParameterModes[paramIndex];
+            var argument = Load(InstructionPointer++);
+
+            return paramMode switch
             {
-                ParameterMode.PositionMode => _memory.GetOrAdd(argument, 0),
+                ParameterMode.PositionMode => Load((int)argument),
                 ParameterMode.ImmediateMode => argument,
-                ParameterMode.RelativeMode => _memory.GetOrAdd(_relativeBase + argument, 0),
-                _ => throw new InvalidOperationException("Unknown parameter mode: " + instruction.ParameterModes[paramIndex]),
+                ParameterMode.RelativeMode => Load(_relativeBase + (int)argument),
+                _ => throw new InvalidOperationException("Unknown parameter mode: " + paramMode),
             };
         }
         private int GetNextAddr(Instruction instruction)
         {
             var paramIndex = InstructionPointer - (instruction.Location + 1);
-            var argument = (int)_memory.GetOrAdd(InstructionPointer++, 0);
+            var argument = (int)Load(InstructionPointer++);
 
             return (instruction.ParameterModes[paramIndex]) switch
             {
@@ -137,28 +195,6 @@ namespace Core
                 _ => throw new InvalidOperationException("Invalid or unknown parameter mode: " + instruction.ParameterModes[paramIndex]),
             };
         }
-
-        private void ExecuteInstruction(Instruction instruction, Func<long, long, long> action)
-        {
-            var result = EvaluateInstruction(instruction, action);
-            var resultAddress = GetNextAddr(_currentInstruction);
-            _memory[resultAddress] = result;
-        }
-
-        private long EvaluateInstruction(Instruction instruction, Func<long, long, long> action)
-            => action(GetNextArg(instruction), GetNextArg(instruction));
-
-        private void ExecuteInstruction(Func<long> action)
-        {
-            var resultAddress = GetNextAddr(_currentInstruction);
-            _memory[resultAddress] = action();
-        }
-
-        private void ExecuteInstruction(Instruction instruction, Action<long> action)
-            => action(GetNextArg(instruction));
-
-
-        private Instruction GetInstruction() => new Instruction(_memory[InstructionPointer], InstructionPointer++);
 
         private struct Instruction
         {
@@ -197,8 +233,8 @@ namespace Core
         {
             Add = 1,
             Mul = 2,
-            Load = 3,
-            Store = 4,
+            ReadInput = 3,
+            SaveOutput = 4,
             JmpIfTrue = 5,
             JmpIfFalse = 6,
             LessThan = 7,
