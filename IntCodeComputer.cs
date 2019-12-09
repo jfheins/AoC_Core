@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Core
 {
     public class IntCodeComputer
     {
-        public int[] Memory { get; private set; }
+        public int[] Memory => _memory.Values.ToArray();
+        public Dictionary<int, int> _memory { get; private set; }
 
         public int InstructionPointer { get; private set; }
         public int StepCount { get; private set; }
@@ -15,12 +17,14 @@ namespace Core
         public Queue<int> Outputs { get; } = new Queue<int>();
 
         private Instruction _currentInstruction;
+        private int _relativeBase = 0;
 
         public OpCode CurrentOpcode => _currentInstruction.OpCode;
 
         public IntCodeComputer(int[] initialState)
         {
-            Memory = Clone(initialState);
+            _memory = initialState.Select((a, i) => (data: a, index: i))
+                .ToDictionary(x => x.index, x => x.data);
         }
 
         public IntCodeComputer(int[] initialState, int firstInput) : this(initialState)
@@ -32,14 +36,8 @@ namespace Core
         {
             foreach (var pair in stateOverride)
             {
-                Memory[pair.Key] = pair.Value;
+                _memory[pair.Key] = pair.Value;
             }
-        }
-        static int[] Clone(int[] array)
-        {
-            var result = new int[array.Length];
-            Buffer.BlockCopy(array, 0, result, 0, array.Length * sizeof(int));
-            return result;
         }
 
         private int GetInput() => Inputs.Dequeue();
@@ -102,6 +100,10 @@ namespace Core
                     ExecuteInstruction(_currentInstruction, (a, b) => a == b ? 1 : 0);
                     break;
 
+                case OpCode.SetRelativeBase:
+                    ExecuteInstruction(_currentInstruction, a => _relativeBase += a);
+                    break;
+
                 case OpCode.Halt:
                     return;
                 default:
@@ -109,15 +111,17 @@ namespace Core
             }
         }
 
+
         private int GetNextArg(Instruction instruction)
         {
             var paramIndex = InstructionPointer - (instruction.Location + 1);
-            var argument = Memory[InstructionPointer++];
+            var argument = _memory.GetOrAdd(InstructionPointer++, 0);
 
             return (instruction.ParameterModes[paramIndex]) switch
             {
-                ParameterMode.PositionMode => Memory[argument],
+                ParameterMode.PositionMode => _memory.GetOrAdd(argument, 0),
                 ParameterMode.ImmediateMode => argument,
+                ParameterMode.RelativeMode => _memory.GetOrAdd(_relativeBase + argument, 0),
                 _ => throw new InvalidOperationException("Unknown parameter mode: " + instruction.ParameterModes[paramIndex]),
             };
         }
@@ -125,20 +129,24 @@ namespace Core
         private void ExecuteInstruction(Instruction instruction, Func<int, int, int> action)
         {
             var result = EvaluateInstruction(instruction, action);
-            Memory[Memory[InstructionPointer++]] = result;
+            var location = _memory.GetOrAdd(InstructionPointer++, 0);
+            _memory[location] = result;
         }
 
         private int EvaluateInstruction(Instruction instruction, Func<int, int, int> action)
             => action(GetNextArg(instruction), GetNextArg(instruction));
 
         private void ExecuteInstruction(Func<int> action)
-            => Memory[Memory[InstructionPointer++]] = action();
+        {
+            var location = _memory.GetOrAdd(InstructionPointer++, 0);
+            _memory[location] = action();
+        }
 
         private void ExecuteInstruction(Instruction instruction, Action<int> action)
             => action(GetNextArg(instruction));
 
 
-        private Instruction GetInstruction() => new Instruction(Memory[InstructionPointer], InstructionPointer++);
+        private Instruction GetInstruction() => new Instruction(_memory[InstructionPointer], InstructionPointer++);
 
         private struct Instruction
         {
@@ -169,7 +177,8 @@ namespace Core
         public enum ParameterMode
         {
             PositionMode = 0,
-            ImmediateMode = 1
+            ImmediateMode = 1,
+            RelativeMode = 2
         }
 
         public enum OpCode
@@ -182,6 +191,7 @@ namespace Core
             JmpIfFalse = 6,
             LessThan = 7,
             Equals = 8,
+            SetRelativeBase = 9,
             Halt = 99
         }
     }
