@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -91,12 +92,12 @@ namespace Core
             return a.SelectMany(x => b, (x, y) => (x, y));
         }
 
-        public static (T min, T max) MinMax<T>(this ICollection<T> source)
+        public static (T min, T max) MinMax<T>(this IEnumerable<T> source)
         {
             return (source.Min(), source.Max());
         }
 
-        public static (TResult min, TResult max) MinMax<T, TResult>(this ICollection<T> source,
+        public static (TResult min, TResult max) MinMax<T, TResult>(this IEnumerable<T> source,
             Func<T, TResult> selector)
         {
             return (source.Min(selector), source.Max(selector));
@@ -237,6 +238,17 @@ namespace Core
             {
                 yield return e.Current;
             } while (innerMoveNext());
+        }
+
+        public static IEnumerable<IEnumerable<Point>> PointsInBoundingRect(this IEnumerable<Point> points)
+        {
+            var (minx, maxx) = points.MinMax(p => p.X);
+            var (miny, maxy) = points.MinMax(p => p.Y);
+
+            for (int y = miny; y <= maxy; y++)
+            {
+                yield return Enumerable.Range(minx, maxx - minx + 1).Select(x => new Point(x, y));
+            }
         }
     }
 }
