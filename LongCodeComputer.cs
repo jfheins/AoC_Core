@@ -65,14 +65,17 @@ namespace Core
         /// Adds the given input and runs the computer until an output occurs.
         /// Returns the first output or null, if the comuter halts.
         /// </summary>
-        public long? RunWith(long input)
+        public long? RunWith(long input, int maxOutputs = 1)
         {
             Inputs.Enqueue(input);
             while (CurrentOpcode != OpCode.Halt)
             {
                 ExecuteStep();
                 if (CurrentOpcode == OpCode.SaveOutput)
-                    return Outputs.Dequeue();
+                {
+                    if (--maxOutputs == 0)
+                        return Outputs.Dequeue();
+                }
             }
             return null;
         }
