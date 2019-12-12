@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Core
 {
@@ -25,6 +26,10 @@ namespace Core
         public override bool Equals(object? obj) => (obj is Point3 p) && Equals(p);
 
         public Point3 TranslateBy(int dx, int dy, int dz) => new Point3(X + dx, Y + dy, Z + dz);
+        public Point3 TranslateBy((int dx, int dy, int dz) velocity)
+            => new Point3(X + velocity.dx, Y + velocity.dy, Z + velocity.dz);
+        public Point3 TranslateBy(Vector3 velocity)
+            => new Point3(X + (int)velocity.X, Y + (int)velocity.Y, Z + (int)velocity.Z);
 
         public static Point3 FromArray(int[] arr, int offset = 0)
         {
