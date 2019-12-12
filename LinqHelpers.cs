@@ -250,5 +250,16 @@ namespace Core
                 yield return Enumerable.Range(minx, maxx - minx + 1).Select(x => new Point(x, y));
             }
         }
+
+        public static IEnumerable<int> StartingIndex<T>(this IList<T> x, IList<T> y)
+        {
+            // https://stackoverflow.com/a/1780481
+            IEnumerable<int> index = Enumerable.Range(0, x.Count - y.Count + 1);
+            for (int i = 0; i < y.Count; i++)
+            {
+                index = index.Where(n => x[n + i].Equals(y[i])).ToArray();
+            }
+            return index;
+        }
     }
 }
