@@ -65,7 +65,7 @@ namespace Core
         /// Adds the given input and runs the computer until an output occurs.
         /// Returns the first output or null, if the comuter halts.
         /// </summary>
-        public long? RunWith(long input, int maxOutputs = 1)
+        public long? RunWith(long input)
         {
             Inputs.Enqueue(input);
             while (CurrentOpcode != OpCode.Halt)
@@ -73,11 +73,46 @@ namespace Core
                 ExecuteStep();
                 if (CurrentOpcode == OpCode.SaveOutput)
                 {
-                    if (--maxOutputs == 0)
-                        return Outputs.Dequeue();
+                    return Outputs.Dequeue();
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Adds the given input and runs the computer until an output occurs.
+        /// Returns true, if the outputs were collected, false if the computer halted before that.
+        /// </summary>
+        public bool RunWith(long input, int maxOutputs)
+        {
+            Inputs.Enqueue(input);
+            return RunForOutputs(maxOutputs);
+        }
+
+        public bool RunForOutputs(int maxOutputs)
+        {
+            while (CurrentOpcode != OpCode.Halt)
+            {
+                ExecuteStep();
+                if (CurrentOpcode == OpCode.SaveOutput)
+                {
+                    if (--maxOutputs == 0)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        public bool RunUntilInputRequired()
+        {
+            while (CurrentOpcode != OpCode.Halt)
+            {
+                if (PeekOpCode() == OpCode.ReadInput && Inputs.Count == 0)
+                    return true;
+
+                ExecuteStep();
+            }
+            return false;
         }
 
         public void Run(int maxSteps = int.MaxValue)
@@ -156,6 +191,8 @@ namespace Core
         private void ExecuteInstruction(Action<long> action)
             => action(GetNextArg());
 
+        private OpCode PeekOpCode()
+            => (OpCode)(_memory[InstructionPointer] % 100);
 
         private long Load(int address)
         {
@@ -164,7 +201,7 @@ namespace Core
             return _memory.GetOrAdd(address, 0);
         }
 
-        private void Store(int address, long value)
+        public void Store(int address, long value)
         {
             _memory[address] = value;
         }

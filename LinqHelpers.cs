@@ -176,6 +176,31 @@ namespace Core
             }
         }
 
+        public static IEnumerable<ValueTuple<T, T, T>> Triplewise<T>(this IEnumerable<T> source)
+        {
+            var saved = 0;
+            var temp1 = default(T);
+            var temp2 = default(T);
+            foreach (var item in source)
+            {
+                if (saved == 0)
+                {
+                    temp1 = item;
+                    saved++;
+                }
+                else if (saved == 1)
+                {
+                    temp2 = item;
+                    saved++;
+                }
+                else
+                {
+                    saved = 0;
+                    yield return ValueTuple.Create(temp1, temp2, item);
+                }
+            }
+        }
+
         public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable)
         {
             var chunk = new List<T>();
