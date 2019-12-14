@@ -51,6 +51,15 @@ namespace Core
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
+        public static void AddOrModify<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue initValue, Func<TValue, TValue> modifier) where TKey : notnull
+        {
+            if (dict.TryGetValue(key, out var data))
+                dict[key] = modifier(data);
+            else
+                dict[key] = modifier(initValue);
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
         public static IEnumerable<TValue> GetOrEmpty<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key) where TKey : notnull
         {
             if (dict.TryGetValue(key, out var data))
