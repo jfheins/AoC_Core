@@ -9,7 +9,7 @@ namespace Core
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
-        private readonly IEqualityComparer<NodeWithPredecessor> _comparer;
+        private readonly NodeComparer _comparer;
         private readonly Func<TNode, IEnumerable<TNode>> _expander;
 
         /// <summary>
@@ -118,8 +118,44 @@ namespace Core
             return results;
         }
 
+
+        public IList<IPath<TNode>> FindLeafs(TNode initialNode,
+                                           ProgressReporterCallback? progressReporter = null,
+                                           int minResults = int.MaxValue)
+        {
+            var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
+            var initial = new NodeWithPredecessor(initialNode);
+            var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { initial };
+            var results = new List<IPath<TNode>>();
+
+            while (nextNodes.Count > 0)
+            {
+                progressReporter?.Invoke(visitedNodes.Count, nextNodes.Count);
+                visitedNodes.UnionWith(nextNodes);
+
+                var expanded = SequentialExpandTuple(nextNodes, visitedNodes)
+                    .ToLookup(expandedNode => expandedNode.nodes.Any());
+
+                var successorNodes = expanded[true].SelectMany(group => group.nodes);
+                nextNodes = new HashSet<NodeWithPredecessor>(successorNodes, _comparer);
+
+                foreach (var node in expanded[false])
+                {
+                    results.Add(new BfsPath(node.pred));
+                }
+
+                if (results.Count >= minResults)
+                {
+                    break;
+                }
+            }
+
+            return results;
+        }
+
+
         private IEnumerable<NodeWithPredecessor> ParallelExpand(IEnumerable<NodeWithPredecessor> nextNodes,
-                                                                HashSet<NodeWithPredecessor> visitedNodes)
+                                                        HashSet<NodeWithPredecessor> visitedNodes)
         {
             return nextNodes.AsParallel()
                 .SelectMany(sourceNode => _expander(sourceNode.Item)
@@ -134,6 +170,15 @@ namespace Core
                 .SelectMany(sourceNode => _expander(sourceNode.Item)
                     .Select(dest => new NodeWithPredecessor(dest, sourceNode))
                     .Where(dest => !visitedNodes.Contains(dest)));
+        }
+
+        private IEnumerable<(NodeWithPredecessor pred, IEnumerable<NodeWithPredecessor> nodes)> SequentialExpandTuple
+            (IEnumerable<NodeWithPredecessor> nextNodes, HashSet<NodeWithPredecessor> visitedNodes)
+        {
+            return nextNodes
+                .Select(sourceNode => (sourceNode, _expander(sourceNode.Item)
+                    .Select(dest => new NodeWithPredecessor(dest, sourceNode))
+                    .Where(node => !visitedNodes.Contains(node))));
         }
 
         private class BfsPath : IPath<TNode>
@@ -159,7 +204,7 @@ namespace Core
 
         private class NodeComparer : EqualityComparer<NodeWithPredecessor>
         {
-            private readonly IEqualityComparer<TNode> _comparer;
+            public readonly IEqualityComparer<TNode> _comparer;
 
             public NodeComparer(IEqualityComparer<TNode> comparer)
             {
