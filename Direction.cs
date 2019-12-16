@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 
 namespace Core
@@ -25,6 +26,8 @@ namespace Core
 
         public static Size ToSize(this Direction dir) => _mapDirectionToSize[dir];
         public static Point MoveTo(this Point p, Direction dir) => p + _mapDirectionToSize[dir];
+        public static IEnumerable<Point> MoveLURD(this Point p)
+            => ((IEnumerable<Size>)_mapDirectionToSize.Values).Select(s => p + s);
 
         public static Direction TurnClockwise(this Direction dir) => (Direction)(((int)dir + 1) % 4);
         public static Direction TurnCounterClockwise(this Direction dir) => (Direction)(((int)dir + 3) % 4);
