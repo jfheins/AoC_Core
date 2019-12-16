@@ -274,14 +274,14 @@ namespace Core
             } while (innerMoveNext());
         }
 
-        public static IEnumerable<IEnumerable<Point>> PointsInBoundingRect(this IEnumerable<Point> points)
+        public static IEnumerable<IList<Point>> PointsInBoundingRect(this IEnumerable<Point> points)
         {
             var (minx, maxx) = points.MinMax(p => p.X);
             var (miny, maxy) = points.MinMax(p => p.Y);
 
             for (int y = miny; y <= maxy; y++)
             {
-                yield return Enumerable.Range(minx, maxx - minx + 1).Select(x => new Point(x, y));
+                yield return Enumerable.Range(minx, maxx - minx + 1).Select(x => new Point(x, y)).ToList();
             }
         }
 

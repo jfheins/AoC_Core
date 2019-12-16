@@ -194,7 +194,7 @@ namespace Core
         private OpCode PeekOpCode()
             => (OpCode)(_memory[InstructionPointer] % 100);
 
-        private long Load(int address)
+        public long Load(int address)
         {
             if (address < 0)
                 throw new InvalidOperationException("Negative addresses are forbidden!");

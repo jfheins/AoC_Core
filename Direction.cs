@@ -30,5 +30,7 @@ namespace Core
         public static Direction TurnCounterClockwise(this Direction dir) => (Direction)(((int)dir + 3) % 4);
         public static Direction Opposite(this Direction dir) => (Direction)(((int)dir + 2) % 4);
 
+
+        public static Direction ToDirection(this ConsoleKeyInfo key) => (Direction)(key.Key - 37);
     }
 }
