@@ -307,5 +307,14 @@ namespace Core
                 }
             }
         }
+        public static IEnumerable<int> CumulativeSum(this IEnumerable<int> sequence)
+        {
+            int sum = 0;
+            foreach (var item in sequence)
+            {
+                sum += item;
+                yield return sum;
+            }
+        }
     }
 }
