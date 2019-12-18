@@ -5,26 +5,12 @@ using JetBrains.Annotations;
 
 namespace Core
 {
-    public class BreadthFirstSearch<TNode, TEdge>
+    public class BreadthFirstSearch<TNode>
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
         private readonly NodeComparer _comparer;
         private readonly Func<TNode, IEnumerable<TNode>> _expander;
-
-        /// <summary>
-        ///     Prepares a breadth first search.
-        /// </summary>
-        /// <param name="comparer">Comparison function that determines node equality</param>
-        /// <param name="expander">Callback to get the possible edges</param>
-        /// <param name="combiner">Callback to combine a source node and an edge to a (possibly new) node. May return null.</param>
-        public BreadthFirstSearch(IEqualityComparer<TNode> comparer,
-                                  Func<TNode, IEnumerable<TEdge>> expander,
-                                  Func<TNode, TEdge, TNode> combiner)
-        {
-            _comparer = new NodeComparer(comparer);
-            _expander = node => expander(node).Select(edge => combiner(node, edge)).Where(x => x != null);
-        }
 
         /// <summary>
         ///     Prepares a breadth first search.
