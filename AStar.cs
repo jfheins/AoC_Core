@@ -55,7 +55,7 @@ namespace Core
 
             var visitedNodes = new HashSet<TNode>(_comparer);
             var nodeQueue = new IntervalHeap<AStarNode>();
-            var openSet = new SCG.Dictionary<TNode, IPriorityQueueHandle<AStarNode>>();
+            var openSet = new SCG.Dictionary<TNode, IPriorityQueueHandle<AStarNode>>(_comparer);
 
             // Helper methods
             void QueueNewNode(AStarNode node)
