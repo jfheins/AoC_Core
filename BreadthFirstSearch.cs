@@ -119,15 +119,16 @@ namespace Core
                 progressReporter?.Invoke(visitedNodes.Count, nextNodes.Count);
                 visitedNodes.UnionWith(nextNodes);
 
-                var expanded = SequentialExpandTuple(nextNodes, visitedNodes)
-                    .ToLookup(expandedNode => expandedNode.nodes.Any());
+                var expanded = SequentialExpandTuple(nextNodes, visitedNodes).ToList();
 
-                var successorNodes = expanded[true].SelectMany(group => group.nodes);
-                nextNodes = new HashSet<NodeWithPredecessor>(successorNodes, _comparer);
-
-                foreach (var node in expanded[false])
+                nextNodes.Clear();
+                foreach (var (pred, nodes) in expanded)
                 {
-                    results.Add(new BfsPath(node.pred));
+                    var successorNodes = nodes.ToList();
+                    if (successorNodes.Any())
+                        nextNodes.UnionWith(successorNodes);
+                    else
+                        results.Add(new BfsPath(pred));
                 }
 
                 if (results.Count >= minResults)
