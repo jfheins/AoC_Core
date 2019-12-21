@@ -316,5 +316,10 @@ namespace Core
                 yield return sum;
             }
         }
+        public static IEnumerable<(int x, int y, T value)> WithXY<T>(this IEnumerable<IEnumerable<T>> sequence)
+            => sequence.SelectMany((line, y) => line.Select((item, x) => (x, y, item)));
+
+        public static IEnumerable<TResult> Select2D<T, TResult>(this IEnumerable<IEnumerable<T>> sequence, Func<int, int, T, TResult> selector)
+            => sequence.SelectMany((line, y) => line.Select((item, x) => selector(x, y, item)));
     }
 }

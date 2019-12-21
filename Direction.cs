@@ -14,6 +14,16 @@ namespace Core
         Down
     }
 
+    public static class Directions
+    {
+        public static Direction[] Vertical => new Direction[] { Direction.Up, Direction.Down };
+        public static Direction[] Horizontal => new Direction[] { Direction.Left, Direction.Right };
+
+        public static Direction[] AntiReading => new Direction[] { Direction.Left, Direction.Up };
+        public static Direction[] Reading => new Direction[] { Direction.Right, Direction.Down };
+        public static Direction[] All4 => new Direction[] { Direction.Left, Direction.Up, Direction.Right, Direction.Down };
+    }
+
     public static class DirectionExtensions
     {
         private static readonly Dictionary<Direction, Size> _mapDirectionToSize = new Dictionary<Direction, Size>

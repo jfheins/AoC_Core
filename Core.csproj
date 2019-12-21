@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
+    <None Include="FiniteGrid2D.cs" />
   </ItemGroup>
 
   <ItemGroup>
