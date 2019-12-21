@@ -35,6 +35,9 @@ namespace Core
         {
             foreach (var (x, y, value) in data.WithXY())
                 this[x, y] = value;
+            var maxx = _values.Max(kvp => kvp.Key.X);
+            var maxy = _values.Max(kvp => kvp.Key.Y);
+            Bounds = new Rectangle(0, 0, maxx, maxy);
         }
 
         public TNode this[int x, int y]
