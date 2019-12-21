@@ -240,6 +240,14 @@ namespace Core
             };
         }
 
+        public void QueueInput(string input)
+        {
+            foreach (var chr in input)
+            {
+                Inputs.Enqueue(chr);
+            }
+        }
+
         private struct Instruction
         {
             public OpCode OpCode { get; }
