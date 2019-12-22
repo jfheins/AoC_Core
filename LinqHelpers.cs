@@ -307,6 +307,12 @@ namespace Core
                 }
             }
         }
+
+        public static IEnumerable<T> Repeat<T>(this IEnumerable<T> source, int count = 2)
+        {
+            var list = source.ToList();
+            return Enumerable.Repeat(list, count).SelectMany(l => l);
+        }
         public static IEnumerable<int> CumulativeSum(this IEnumerable<int> sequence)
         {
             int sum = 0;
