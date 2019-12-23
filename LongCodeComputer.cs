@@ -29,6 +29,7 @@ namespace Core
         public Queue<long> Inputs { get; } = new Queue<long>();
         public Queue<long> Outputs { get; } = new Queue<long>();
 
+        public int? DefaultInput { get; set; } = null;
 
         private readonly Dictionary<int, long> _memory;
         private Instruction _currentInstruction;
@@ -64,7 +65,13 @@ namespace Core
             return new LongCodeComputer(content);
         }
 
-        private long GetInput() => Inputs.Dequeue();
+        private long GetInput()
+        {
+            if (Inputs.Count == 0 && DefaultInput.HasValue)
+                return DefaultInput.Value;
+
+            return Inputs.Dequeue();
+        }
 
         private void SetOutput(long value) => Outputs.Enqueue(value);
 
