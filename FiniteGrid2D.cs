@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 
 namespace Core
 {
@@ -18,6 +19,9 @@ namespace Core
 
         public FiniteGrid2D(int width, int height, Func<int, int, TNode> dataCallback)
             : this(width, height, p => dataCallback(p.X, p.Y)) { }
+
+        public FiniteGrid2D(Size size, Func<Point, TNode> dataCallback)
+            : this(size.Width, size.Height, dataCallback) { }
 
         public FiniteGrid2D(int width, int height, Func<Point, TNode> dataCallback)
         {
@@ -37,7 +41,12 @@ namespace Core
                 this[x, y] = value;
             var maxx = _values.Max(kvp => kvp.Key.X);
             var maxy = _values.Max(kvp => kvp.Key.Y);
-            Bounds = new Rectangle(0, 0, maxx, maxy);
+            Bounds = new Rectangle(0, 0, maxx + 1, maxy + 1);
+        }
+        public FiniteGrid2D(FiniteGrid2D<TNode> source)
+        {
+            _values = new Dictionary<Point, TNode>(source._values);
+            Bounds = source.Bounds;
         }
 
         public TNode this[int x, int y]
@@ -58,7 +67,19 @@ namespace Core
         public IEnumerable<Point> Get4NeighborsOf(Point pos)
             => pos.MoveLURD().Where(Bounds.Contains);
 
-
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            for (int y = 0; y < Bounds.Height; y++)
+            {
+                for (int x = 0; x < Bounds.Width; x++)
+                {
+                    sb.Append(this[x, y].ToString());
+                }
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
 
         public void Add((Point pos, TNode value) item) => _values.Add(item.pos, item.value);
         public void Clear() => _values.Clear();
