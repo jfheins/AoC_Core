@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using C5;
 using SCG = System.Collections.Generic;
@@ -11,6 +12,10 @@ namespace Core
 
         private readonly SCG.IEqualityComparer<TNode> _comparer;
         private readonly Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> _expander;
+
+        private static readonly TimeSpan progressInterval = TimeSpan.FromMilliseconds(400);
+        private AStarSearch<TNode>.ProgressReporterCallback _progressCallback;
+        private Stopwatch _stopwatch = new Stopwatch();
 
         /// <summary>
         ///     Prepares a AStar search.
@@ -52,6 +57,9 @@ namespace Core
             {
                 throw new ArgumentNullException(nameof(heuristic));
             }
+
+            _stopwatch.Start();
+            _progressCallback = progressReporter ?? ((set, visited) => Console.WriteLine($"A* visited {visited} nodes, working on {set}."));
 
             var visitedNodes = new HashSet<TNode>(_comparer);
             var nodeQueue = new IntervalHeap<AStarNode>();
@@ -96,7 +104,7 @@ namespace Core
 
             while (nodeQueue.Count > 0)
             {
-                progressReporter?.Invoke(visitedNodes.Count, nodeQueue.Count);
+                InvokeProgress(visitedNodes.Count, nodeQueue.Count);
 
                 var currentNode = PopMinNode();
                 _ = visitedNodes.Add(currentNode.Item);
@@ -120,6 +128,15 @@ namespace Core
             }
 
             return results;
+        }
+
+        private void InvokeProgress(int workingSetCount, int visitedCount)
+        {
+            if (_stopwatch.Elapsed > progressInterval)
+            {
+                _progressCallback(workingSetCount, visitedCount);
+                _stopwatch.Restart();
+            }
         }
 
         public class AStarPath : IPath<TNode>
