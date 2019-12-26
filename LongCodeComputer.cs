@@ -253,6 +253,7 @@ namespace Core
             {
                 Inputs.Enqueue(chr);
             }
+            Inputs.Enqueue('\n');
         }
 
         private struct Instruction
