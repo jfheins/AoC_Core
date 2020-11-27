@@ -45,6 +45,7 @@ namespace Core.Combinatorics
             /// <param name="source">The source Permutations object.</param>
             public Enumerator(Permutations<T> source)
             {
+                myValues = new List<T>();
                 myParent = source;
                 myLexicographicalOrders = new int[source.myLexicographicOrders.Length];
                 source.myLexicographicOrders.CopyTo(myLexicographicalOrders, 0);
@@ -123,7 +124,7 @@ namespace Core.Combinatorics
             /// <summary>
             ///     Cleans up non-managed resources, of which there are none used here.
             /// </summary>
-            public virtual void Dispose() { }
+            public virtual void Dispose() { GC.SuppressFinalize(this); }
 
             #endregion
 
@@ -173,7 +174,7 @@ namespace Core.Combinatorics
             /// </summary>
             private void Swap(int i, int j)
             {
-                myTemp = myValues[i];
+                var myTemp = myValues[i];
                 myValues[i] = myValues[j];
                 myValues[j] = myTemp;
                 myKviTemp = myLexicographicalOrders[i];
@@ -184,11 +185,6 @@ namespace Core.Combinatorics
             #endregion
 
             #region Data and Internal Members
-
-            /// <summary>
-            ///     Single instance of swap variable for T, small performance improvement over declaring in Swap function scope.
-            /// </summary>
-            private T myTemp;
 
             /// <summary>
             ///     Single instance of swap variable for int, small performance improvement over declaring in Swap function scope.
@@ -401,10 +397,14 @@ namespace Core.Combinatorics
         /// </summary>
         private class SelfComparer<U> : IComparer<U>
         {
-            public int Compare(U x, U y)
+            public int Compare(U? x, U? y)
             {
-                // ReSharper disable once PossibleNullReferenceException
-                return ((IComparable<U>)x).CompareTo(y);
+                if (x is null)
+                    return 1;
+                if (y is null)
+                    return -1;
+
+                return ((IComparable<U?>)x).CompareTo(y);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using C5;
 using SCG = System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace Core
 
         private static readonly TimeSpan progressInterval = TimeSpan.FromMilliseconds(400);
         private AStarSearch<TNode>.ProgressReporterCallback _progressCallback;
-        private Stopwatch _stopwatch = new Stopwatch();
+        private readonly Stopwatch _stopwatch = new();
 
         /// <summary>
         ///     Prepares a AStar search.
@@ -26,6 +27,7 @@ namespace Core
         {
             _comparer = comparer;
             _expander = expander;
+            _progressCallback = (set, visited) => Console.WriteLine($"A* visited {visited} nodes, working on {set}.");
         }
 
         public AStarPath? FindFirst(TNode initialNode,
@@ -59,7 +61,7 @@ namespace Core
             }
 
             _stopwatch.Start();
-            _progressCallback = progressReporter ?? ((set, visited) => Console.WriteLine($"A* visited {visited} nodes, working on {set}."));
+            _progressCallback = progressReporter ?? _progressCallback;
 
             var visitedNodes = new HashSet<TNode>(_comparer);
             var nodeQueue = new IntervalHeap<AStarNode>();
@@ -150,6 +152,7 @@ namespace Core
 
             public AStarPath(AStarNode target)
             {
+                Contract.Assert(target != null);
                 Target = target.Item;
                 Steps = target.GetHistory().Reverse().ToArray();
                 Length = Steps.Length - 1;
@@ -188,7 +191,13 @@ namespace Core
             public TNode Item { get; }
             private AStarNode? Predecessor { get; }
 
-            public int CompareTo(AStarNode other) => OverallEstimate.CompareTo(other.OverallEstimate);
+            public int CompareTo(AStarNode? other)
+            {
+                if (other is null)
+                    return 1;
+                
+                return OverallEstimate.CompareTo(other.OverallEstimate);
+            }
 
             public SCG.IEnumerable<TNode> GetHistory()
             {

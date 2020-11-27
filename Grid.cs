@@ -15,7 +15,7 @@ namespace Core
         public Point Origin { get; set; } = Point.Empty;
 
         private readonly Func<Point, TNode> _nodeDataCallback;
-        private readonly Dictionary<Point, TNode> _nodeDataCache = new Dictionary<Point, TNode>();
+        private readonly Dictionary<Point, TNode> _nodeDataCache = new();
 
         public Grid2(Func<Point, TNode> dataCallback)
         {

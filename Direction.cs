@@ -26,8 +26,8 @@ namespace Core
 
     public static class DirectionExtensions
     {
-        private static readonly Dictionary<Direction, Size> _mapDirectionToSize = new Dictionary<Direction, Size>
-            {
+        private static readonly Dictionary<Direction, Size> _mapDirectionToSize = new()
+        {
                 {Direction.Left, new Size(-1, 0)},
                 {Direction.Up, new Size(0, -1)},
                 {Direction.Right, new Size(1, 0)},

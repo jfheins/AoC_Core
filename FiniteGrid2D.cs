@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 
 namespace Core
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "Collection is a minor concern")]
     public class FiniteGrid2D<TNode> : ICollection<(Point pos, TNode value)>
         where TNode : notnull
     {
@@ -14,7 +16,7 @@ namespace Core
         public int Count { get; }
         public bool IsReadOnly { get; }
 
-        private readonly Dictionary<Point, TNode> _values = new Dictionary<Point, TNode>();
+        private readonly Dictionary<Point, TNode> _values = new();
 
 
         public FiniteGrid2D(int width, int height, TNode value)
@@ -48,6 +50,7 @@ namespace Core
         }
         public FiniteGrid2D(FiniteGrid2D<TNode> source)
         {
+            Contract.Assert(source != null);
             _values = new Dictionary<Point, TNode>(source._values);
             Bounds = source.Bounds;
         }
@@ -64,7 +67,7 @@ namespace Core
             set => _values[pos] = value;
         }
 
-        public TNode GetValueOrDefault(Point pos, TNode defaultValue = default)
+        public TNode GetValueOrDefault(Point pos, TNode defaultValue)
             => _values.GetValueOrDefault(pos, defaultValue);
 
         public IEnumerable<Point> Get4NeighborsOf(Point pos)

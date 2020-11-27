@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 namespace Core
 {
-    public class BreadthFirstSearch<TNode>
+    public class BreadthFirstSearch<TNode> where TNode: notnull
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
@@ -44,7 +44,6 @@ namespace Core
         }
 
         [NotNull]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for methods")]
         public IList<IPath<TNode>> FindAll(TNode initialNode,
                                            Func<TNode, bool> targetPredicate,
                                            ProgressReporterCallback? progressReporter = null,
@@ -198,8 +197,11 @@ namespace Core
                 _comparer = comparer;
             }
 
-            public override bool Equals(NodeWithPredecessor a, NodeWithPredecessor b)
+            public override bool Equals(NodeWithPredecessor? a, NodeWithPredecessor? b)
             {
+                if (a is null || b is null)
+                    return ReferenceEquals(a, b);
+
                 return _comparer.Equals(a.Item, b.Item);
             }
 

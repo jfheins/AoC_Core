@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using C5;
 using SCG = System.Collections.Generic;
 
 namespace Core
 {
-    public class DijkstraSearch<TNode>
+    public class DijkstraSearch<TNode> where TNode: notnull
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
@@ -124,6 +125,7 @@ namespace Core
 
             public DijkstraPath(DijkstraNode target)
             {
+                Contract.Assert(target != null);
                 Target = target.Item;
                 Steps = target.GetHistory().Reverse().ToArray();
                 Length = Steps.Length - 1;
@@ -145,8 +147,11 @@ namespace Core
                 _comparer = comparer;
             }
 
-            public override bool Equals(DijkstraNode a, DijkstraNode b)
+            public override bool Equals(DijkstraNode? a, DijkstraNode? b)
             {
+                if (a is null || b is null)
+                    return ReferenceEquals(a, b);
+                
                 return _comparer.Equals(a.Item, b.Item);
             }
 
@@ -177,7 +182,12 @@ namespace Core
             private DijkstraNode? Predecessor { get; }
             public IPriorityQueueHandle<DijkstraNode>? Handle { get; set; }
 
-            public int CompareTo(DijkstraNode other) => Cost.CompareTo(other.Cost);
+            public int CompareTo(DijkstraNode? other)
+            {
+                if (other is null)
+                    return 1;
+                return Cost.CompareTo(other.Cost);
+            }
 
             public SCG.IEnumerable<TNode> GetHistory()
             {

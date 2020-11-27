@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -150,31 +151,31 @@ namespace Core
         /// </returns>
         public static IEnumerable<ValueTuple<T, T>> PairwiseWithOverlap<T>(this IEnumerable<T> source)
         {
-            using (var it = source.GetEnumerator())
+            Contract.Assert(source != null, nameof(source));
+            using var it = source.GetEnumerator();
+            if (!it.MoveNext())
             {
-                if (!it.MoveNext())
-                {
-                    yield break;
-                }
+                yield break;
+            }
 
-                var previous = it.Current;
+            var previous = it.Current;
 
-                while (it.MoveNext())
-                {
-                    yield return ValueTuple.Create(previous, previous = it.Current);
-                }
+            while (it.MoveNext())
+            {
+                yield return ValueTuple.Create(previous, previous = it.Current);
             }
         }
 
         public static IEnumerable<ValueTuple<T, T>> Pairwise<T>(this IEnumerable<T> source)
         {
+            Contract.Assert(source != null, nameof(source));
             var isPair = false;
             var tempItem = default(T);
             foreach (var item in source)
             {
                 if (isPair)
                 {
-                    yield return ValueTuple.Create(tempItem, item);
+                    yield return ValueTuple.Create(tempItem!, item);
                     isPair = false;
                 }
                 else
@@ -187,6 +188,7 @@ namespace Core
 
         public static IEnumerable<ValueTuple<T, T, T>> Triplewise<T>(this IEnumerable<T> source)
         {
+            Contract.Assert(source != null, nameof(source));
             var saved = 0;
             var temp1 = default(T);
             var temp2 = default(T);
@@ -212,6 +214,7 @@ namespace Core
 
         public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable)
         {
+            Contract.Assert(enumerable != null, nameof(enumerable));
             var chunk = new List<T>();
             var reference = default(T);
 
@@ -243,24 +246,23 @@ namespace Core
         public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable,
             int chunkSize)
         {
+            Contract.Assert(enumerable != null, nameof(enumerable));
             if (chunkSize < 1)
             {
                 throw new ArgumentException("chunkSize must be positive");
             }
 
-            using (var e = enumerable.GetEnumerator())
+            using var e = enumerable.GetEnumerator();
+            while (e.MoveNext())
             {
-                while (e.MoveNext())
-                {
-                    var remaining = chunkSize; // elements remaining in the current chunk
-                    // ReSharper disable once AccessToDisposedClosure
-                    var innerMoveNext = new Func<bool>(() => --remaining > 0 && e.MoveNext());
+                var remaining = chunkSize; // elements remaining in the current chunk
+                                           // ReSharper disable once AccessToDisposedClosure
+                var innerMoveNext = new Func<bool>(() => --remaining > 0 && e.MoveNext());
 
-                    yield return e.GetChunk(innerMoveNext);
-                    while (innerMoveNext())
-                    {
-                        /* discard elements skipped by inner iterator */
-                    }
+                yield return e.GetChunk(innerMoveNext);
+                while (innerMoveNext())
+                {
+                    /* discard elements skipped by inner iterator */
                 }
             }
         }
@@ -287,6 +289,8 @@ namespace Core
 
         public static IEnumerable<int> StartingIndex<T>(this IList<T> x, IList<T> y)
         {
+            Contract.Assert(x != null, nameof(x));
+            Contract.Assert(y != null, nameof(y));
             // https://stackoverflow.com/a/1780481
             IEnumerable<int> index = Enumerable.Range(0, x.Count - y.Count + 1);
             for (int i = 0; i < y.Count; i++)
@@ -315,6 +319,7 @@ namespace Core
         }
         public static IEnumerable<int> CumulativeSum(this IEnumerable<int> sequence)
         {
+            Contract.Assert(sequence != null, nameof(sequence));
             int sum = 0;
             foreach (var item in sequence)
             {
