@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
@@ -34,6 +35,7 @@ namespace Core
 
         public IntCodeComputer(int[] initialState, IDictionary<int, int> stateOverride) : this(initialState)
         {
+            Contract.Assert(stateOverride != null);
             foreach (var pair in stateOverride)
             {
                 _memory[pair.Key] = pair.Value;

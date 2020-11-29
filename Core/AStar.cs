@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
+
 using C5;
+
 using SCG = System.Collections.Generic;
 
 namespace Core
@@ -165,6 +167,7 @@ namespace Core
             public float Cost { get; set; }
         }
 
+#pragma warning disable CA1036 // Override methods on comparable types
         public class AStarNode : IComparable<AStarNode>
         {
             internal AStarNode(TNode initial, float remainder)
@@ -195,7 +198,7 @@ namespace Core
             {
                 if (other is null)
                     return 1;
-                
+
                 return OverallEstimate.CompareTo(other.OverallEstimate);
             }
 

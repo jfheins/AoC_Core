@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
+
 using C5;
+
 using SCG = System.Collections.Generic;
 
 namespace Core
 {
-    public class DijkstraSearch<TNode> where TNode: notnull
+    public class DijkstraSearch<TNode> where TNode : notnull
     {
         public delegate void ProgressReporterCallback(int workingSetCount, int visitedCount);
 
@@ -138,41 +140,18 @@ namespace Core
             public float Cost { get; set; }
         }
 
-        private class NodeComparer : SCG.EqualityComparer<DijkstraNode>
-        {
-            public readonly SCG.IEqualityComparer<TNode> _comparer;
-
-            public NodeComparer(SCG.IEqualityComparer<TNode> comparer)
-            {
-                _comparer = comparer;
-            }
-
-            public override bool Equals(DijkstraNode? a, DijkstraNode? b)
-            {
-                if (a is null || b is null)
-                    return ReferenceEquals(a, b);
-                
-                return _comparer.Equals(a.Item, b.Item);
-            }
-
-            public override int GetHashCode(DijkstraNode x)
-            {
-                return _comparer.GetHashCode(x.Item);
-            }
-        }
-
         public class DijkstraNode : IComparable<DijkstraNode>
         {
-            internal DijkstraNode(TNode initial)
+            internal DijkstraNode(TNode item)
             {
-                Item = initial;
+                Item = item;
                 Predecessor = null;
                 Cost = 0f;
             }
 
-            internal DijkstraNode(TNode current, DijkstraNode predecessor, float edgeCost = 0)
+            internal DijkstraNode(TNode item, DijkstraNode predecessor, float edgeCost = 0)
             {
-                Item = current;
+                Item = item;
                 Predecessor = predecessor;
                 Cost = predecessor.Cost + edgeCost;
             }

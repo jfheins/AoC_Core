@@ -80,9 +80,9 @@ namespace Core
             {
                 for (int x = 0; x < Bounds.Width; x++)
                 {
-                    sb.Append(this[x, y].ToString());
+                    _ = sb.Append(this[x, y].ToString());
                 }
-                sb.AppendLine();
+                _ = sb.AppendLine();
             }
             return sb.ToString();
         }
