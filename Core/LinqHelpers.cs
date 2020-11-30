@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Drawing;
@@ -222,10 +223,12 @@ namespace Core
             }
         }
 
-        public static IEnumerable<IEnumerable<T>> Chunks<T>(this IEnumerable<T> enumerable)
+        public static IEnumerable<ImmutableList<T>> Chunks<T>(this IEnumerable<T> enumerable, EqualityComparer<T>? comparer = null)
         {
             Contract.Assert(enumerable != null, nameof(enumerable));
-            var chunk = new List<T>();
+            comparer ??= EqualityComparer<T>.Default;
+
+            var chunk = ImmutableList.CreateBuilder<T>();
             var reference = default(T);
 
             using var e = enumerable.GetEnumerator();
@@ -234,22 +237,35 @@ namespace Core
                 if (chunk.Count == 0)
                 {
                     reference = e.Current;
-                    chunk.Add(e.Current);
                 }
-                else if (e.Current!.Equals(reference))
+                else if (!comparer.Equals(e.Current, reference))
                 {
-                    chunk.Add(e.Current);
-                }
-                else
-                {
-                    yield return chunk;
-                    chunk = new List<T>();
+                    yield return chunk.ToImmutable();
+                    chunk = ImmutableList.CreateBuilder<T>();
                     reference = e.Current;
-                    chunk.Add(e.Current);
+                }
+                chunk.Add(e.Current);
+            }
+            yield return chunk.ToImmutable();
+        }
+
+        public static IEnumerable<ReadOnlyMemory<char>> Chunks(this string source, EqualityComparer<char>? comparer = null)
+        {
+            Contract.Assert(source != null, nameof(source));
+            comparer ??= EqualityComparer<char>.Default;
+
+            var startIdx = 0;
+            var strMem = source.AsMemory();
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (!comparer.Equals(source[i], source[startIdx]))
+                {
+                    yield return strMem[startIdx..i];
+                    startIdx = i;
                 }
             }
-            if (chunk.Count > 0)
-                yield return chunk;
+            yield return strMem[startIdx..];
         }
 
         // https://stackoverflow.com/questions/419019/split-list-into-sublists-with-linq/20953521#20953521

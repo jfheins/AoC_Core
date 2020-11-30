@@ -24,11 +24,26 @@ namespace Core.Test
             CollectionAssert.AreEqual(expectedChunks, chunks, $"string: '{data}'");
         }
 
+        [TestMethod]
+        public void RightChunksNonString()
+        {
+            var array = new int[] { 1, 1, 1, 2, 2, 3, 6, 9, 9, 9, 8, 7, 7, 7, 5, 5, 4, 4, 4, 8, 8, 8, 8, 3, 3, 3, 3, 3, 9 };
+            var chunks = array.Chunks();
+
+            var expected = new int[][] {
+                new int[] { 1, 1, 1 }, new int[] { 2, 2 }, new int[] { 3 }, new int[] { 6 },
+                new int[] { 9, 9, 9 }, new int[] { 8 }, new int[] { 7, 7, 7 }, new int[] { 5, 5 },
+                new int[] { 4, 4, 4 }, new int[] { 8, 8, 8, 8 }, new int[] { 3, 3, 3, 3, 3 }, new int[] {9 } };
+
+            foreach (var (exp, result) in expected.Zip(chunks))
+                CollectionAssert.AreEqual(exp, result);
+        }
+
 
         [TestMethod]
         public void RightNumberOfDoubles()
         {
-            static bool Check(int num) => num.ToString().ToCharArray().Chunks().Any(c => c.Count() == 2);
+            static bool Check(int num) => num.ToString().Chunks().Any(c => c.Length == 2);
 
             var range = Enumerable.Range(134564, 450596);
             Assert.AreEqual(166392, range.Count(Check));

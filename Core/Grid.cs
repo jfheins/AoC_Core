@@ -30,7 +30,7 @@ namespace Core
 
         public TNode this[Point p]
         {
-            get => _nodeDataCache.TryGetValue(p, out var data) ? data : (_nodeDataCache[p] = _nodeDataCallback(p));
+            get => _nodeDataCache.GetOrAdd(p, _nodeDataCallback);
             set => _nodeDataCache[p] = value;
         }
     }
