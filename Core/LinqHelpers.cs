@@ -343,5 +343,9 @@ namespace Core
 
         public static IEnumerable<TResult> Select2D<T, TResult>(this IEnumerable<IEnumerable<T>> sequence, Func<int, int, T, TResult> selector)
             => sequence.SelectMany((line, y) => line.Select((item, x) => selector(x, y, item)));
+
+        public static ValueTuple<T, T> ToTuple2<T>(this IList<T> source) => (source[0], source[1]);
+        public static ValueTuple<T, T, T> ToTuple3<T>(this IList<T> source) => (source[0], source[1], source[2]);
+        public static ValueTuple<T, T, T, T> ToTuple4<T>(this IList<T> source) => (source[0], source[1], source[2], source[3]);
     }
 }
