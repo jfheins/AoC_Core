@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Core
 {
+    [SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "Suffix: List")]
     public class NonEmptyList<T> : IList<T>
     {
         public T Head { get; private set; }

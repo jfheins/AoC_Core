@@ -61,7 +61,7 @@ namespace Core
 
         public static LongCodeComputer FromFile(string filePath)
         {
-            var content = File.ReadAllText("../../../input.txt").ParseLongs();
+            var content = File.ReadAllText(filePath).ParseLongs();
             return new LongCodeComputer(content);
         }
 

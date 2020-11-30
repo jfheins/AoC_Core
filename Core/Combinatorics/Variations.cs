@@ -224,7 +224,7 @@ namespace Core.Combinatorics
             /// <summary>
             ///     An enumertor of the parents list of lexicographic orderings.
             /// </summary>
-            private List<int> myListIndexes;
+            private List<int> myListIndexes = new();
 
         }
 

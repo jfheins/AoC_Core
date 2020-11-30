@@ -25,7 +25,7 @@ namespace Core.Test
         {
             var list = new NonEmptyList<int>(1) { 2, 3, 4 };
             Assert.AreEqual(4, list.Count);
-            list.Remove(2);
+            _ = list.Remove(2);
             Assert.IsFalse(list.Contains(2));
             list.RemoveAt(0);
             Assert.AreEqual(3, list.Head);
