@@ -30,7 +30,7 @@ namespace Core
 
         public static IEnumerable<T> ExceptFor<T>(this IEnumerable<T> source, T exception)
         {
-            return source.Where(x => !x.Equals(exception));
+            return source.Where(x => x is null || !x.Equals(exception));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
@@ -102,15 +102,25 @@ namespace Core
             return a.SelectMany(x => b, (x, y) => (x, y));
         }
 
-        public static (T min, T max) MinMax<T>(this IEnumerable<T> source)
+        public static (T min, T max)? MinMax<T>(this IEnumerable<T> source)
         {
-            return (source.Min(), source.Max());
+            return source.MinMax(x => x);
         }
 
-        public static (TResult min, TResult max) MinMax<T, TResult>(this IEnumerable<T> source,
+        public static (TResult min, TResult max)? MinMax<T, TResult>(this IEnumerable<T> source,
             Func<T, TResult> selector)
         {
-            return (source.Min(selector), source.Max(selector));
+            var min = source.Min(selector);
+            var max = source.Max(selector);
+            return min is null || max is null ? null : (min, max);
+        }
+
+        public static (TResult min, TResult max) MinMax<T, TResult>(this NonEmptyList<T> source,
+            Func<T, TResult> selector)
+        {
+            var min = source.Min(selector);
+            var max = source.Max(selector);
+            return (min!, max!);
         }
 
         public static int Diff(this ValueTuple<int, int> pair)
@@ -207,7 +217,7 @@ namespace Core
                 else
                 {
                     saved = 0;
-                    yield return ValueTuple.Create(temp1, temp2, item);
+                    yield return ValueTuple.Create(temp1!, temp2!, item);
                 }
             }
         }
@@ -278,8 +288,9 @@ namespace Core
 
         public static IEnumerable<IList<Point>> PointsInBoundingRect(this IEnumerable<Point> points)
         {
-            var (minx, maxx) = points.MinMax(p => p.X);
-            var (miny, maxy) = points.MinMax(p => p.Y);
+            var list = new NonEmptyList<Point>(points);
+            var (minx, maxx) = list.MinMax(p => p.X);
+            var (miny, maxy) = list.MinMax(p => p.Y);
 
             for (int y = miny; y <= maxy; y++)
             {
@@ -295,7 +306,7 @@ namespace Core
             IEnumerable<int> index = Enumerable.Range(0, x.Count - y.Count + 1);
             for (int i = 0; i < y.Count; i++)
             {
-                index = index.Where(n => x[n + i].Equals(y[i])).ToArray();
+                index = index.Where(n => x[n + i]!.Equals(y[i])).ToArray();
             }
             return index;
         }

@@ -141,7 +141,7 @@ namespace Core.Combinatorics
             public void Reset()
             {
                 myCurrentList = null;
-                myListIndexes = null;
+                myListIndexes = new();
             }
 
             /// <summary>
@@ -189,7 +189,7 @@ namespace Core.Combinatorics
                 get
                 {
                     ComputeCurrent();
-                    return myCurrentList;
+                    return myCurrentList!;
                 }
             }
 
@@ -201,14 +201,14 @@ namespace Core.Combinatorics
                 get
                 {
                     ComputeCurrent();
-                    return myCurrentList;
+                    return myCurrentList!;
                 }
             }
 
             /// <summary>
             ///     Cleans up non-managed resources, of which there are none used here.
             /// </summary>
-            public void Dispose() { }
+            public void Dispose() { GC.SuppressFinalize(this); }
 
 
             /// <summary>
@@ -219,7 +219,7 @@ namespace Core.Combinatorics
             /// <summary>
             ///     The current list of values, this is lazy evaluated by the Current property.
             /// </summary>
-            private List<T> myCurrentList;
+            private List<T>? myCurrentList;
 
             /// <summary>
             ///     An enumertor of the parents list of lexicographic orderings.
@@ -241,7 +241,7 @@ namespace Core.Combinatorics
             public EnumeratorWithoutRepetition(Variations<T> source)
             {
                 myParent = source;
-                myPermutationsEnumerator = (Permutations<int>.Enumerator)myParent.myPermutations.GetEnumerator();
+                myPermutationsEnumerator = (Permutations<int>.Enumerator)myParent.myPermutations!.GetEnumerator();
             }
 
 
@@ -301,7 +301,7 @@ namespace Core.Combinatorics
             public bool MoveNext()
             {
                 var ret = myPermutationsEnumerator.MoveNext();
-                myCurrentList = null;
+                myCurrentList = null!;
                 return ret;
             }
 
@@ -313,7 +313,7 @@ namespace Core.Combinatorics
                 get
                 {
                     ComputeCurrent();
-                    return myCurrentList;
+                    return myCurrentList!;
                 }
             }
 
@@ -325,14 +325,14 @@ namespace Core.Combinatorics
                 get
                 {
                     ComputeCurrent();
-                    return myCurrentList;
+                    return myCurrentList!;
                 }
             }
 
             /// <summary>
             ///     Cleans up non-managed resources, of which there are none used here.
             /// </summary>
-            public void Dispose() { }
+            public void Dispose() { GC.SuppressFinalize(this); }
 
 
             /// <summary>
@@ -343,7 +343,7 @@ namespace Core.Combinatorics
             /// <summary>
             ///     The current list of values, this is lazy evaluated by the Current property.
             /// </summary>
-            private List<T> myCurrentList;
+            private List<T>? myCurrentList;
 
             /// <summary>
             ///     An enumertor of the parents list of lexicographic orderings.
@@ -364,7 +364,7 @@ namespace Core.Combinatorics
             get
             {
                 if (Type == GenerateOption.WithoutRepetition)
-                    return myPermutations.Count;
+                    return myPermutations!.Count;
                 return (long)Math.Pow(UpperIndex, LowerIndex);
             }
         }
@@ -387,11 +387,11 @@ namespace Core.Combinatorics
         /// <summary>
         ///     Copy of values object is intialized with, required for enumerator reset.
         /// </summary>
-        private List<T> myValues;
+        private List<T> myValues = new();
 
         /// <summary>
         ///     Permutations object that handles permutations on int for variation inclusion and ordering.
         /// </summary>
-        private Permutations<int> myPermutations;
+        private Permutations<int>? myPermutations;
     }
 }
