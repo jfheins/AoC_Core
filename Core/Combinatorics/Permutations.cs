@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Core.Combinatorics
 {
@@ -172,6 +173,8 @@ namespace Core.Combinatorics
             ///     Helper function for swapping two elements within the internal collection.
             ///     This swaps both the lexicographical order and the values, maintaining the parallel array.
             /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
             private void Swap(int i, int j)
             {
                 var myTemp = myValues[i];

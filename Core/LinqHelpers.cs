@@ -103,6 +103,11 @@ namespace Core
             return a.SelectMany(x => b, (x, y) => (x, y));
         }
 
+        public static int Product(this IEnumerable<int> source)
+        {
+            return source.Aggregate(1, (a, b) => a * b);
+        }
+
         public static (T min, T max)? MinMax<T>(this IEnumerable<T> source)
         {
             return source.MinMax(x => x);
