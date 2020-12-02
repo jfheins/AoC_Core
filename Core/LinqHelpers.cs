@@ -368,5 +368,39 @@ namespace Core
         public static ValueTuple<T, T> ToTuple2<T>(this IList<T> source) => (source[0], source[1]);
         public static ValueTuple<T, T, T> ToTuple3<T>(this IList<T> source) => (source[0], source[1], source[2]);
         public static ValueTuple<T, T, T, T> ToTuple4<T>(this IList<T> source) => (source[0], source[1], source[2], source[3]);
+
+
+        public static IEnumerable<string[]> MatchRegexGroups(this IEnumerable<string> source, string pattern, int? count = null)
+        {
+            var regex = new Regex(pattern, RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
+            foreach (var line in source)
+            {
+                ICollection<Group> matches = regex.Match(line).Groups;
+                if (count != null)
+                    Debug.Assert(matches.Count == count);
+                yield return matches.Select(x => x.Value).ToArray();
+            }
+        }
+        public static IEnumerable<ValueTuple<T1, T2, T3, T4>> MatchRegexGroups4<T1, T2, T3, T4>(
+            this IEnumerable<string> source, 
+            string pattern,
+            int? count = null)
+        {
+            var regex = new Regex(pattern, RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
+            
+            (T1, T2, T3, T4) ResultFactory(IList<Group> groups)
+            {
+                T Parser<T>(int idx) => (T)Convert.ChangeType(groups[idx].Value, typeof(T));
+                return (Parser<T1>(1), Parser<T2>(2), Parser<T3>(3), Parser<T4>(4));
+            }
+
+            foreach (var line in source)
+            {
+                IList<Group> matches = regex.Match(line).Groups;
+                if (count != null)
+                    Debug.Assert(matches.Count == count);
+                yield return ResultFactory(matches);
+            }
+        }
     }
 }
