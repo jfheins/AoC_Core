@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -155,13 +156,18 @@ namespace Core.Combinatorics
     }
 
 
-
-    public class ArrayCombinations<T> : IEnumerable<IList<T>> where T : notnull
+    /// <summary>
+    /// This will mutate the internal array in place and return it many times,
+    /// so you must not store a the array reference.
+    /// Either filter in the enumeration immediately or copy the arrays.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class FastCombinations<T> : IEnumerable<ReadOnlyCollection<T>> where T : notnull
     {
         public IReadOnlyList<T> SourceValues { get; }
         public int CombinationLength { get; }
 
-        public ArrayCombinations(IReadOnlyList<T> sourceValues, int combinationLength)
+        public FastCombinations(IReadOnlyList<T> sourceValues, int combinationLength)
         {
             if (sourceValues.Count < 3)
                 throw new InvalidOperationException("Source collection must contain at least 3 elements");
@@ -170,7 +176,7 @@ namespace Core.Combinatorics
             CombinationLength = combinationLength;
         }
 
-        public IEnumerator<IList<T>> GetEnumerator()
+        public IEnumerator<ReadOnlyCollection<T>> GetEnumerator()
         {
             return new Enumerator(SourceValues, CombinationLength);
         }
@@ -180,7 +186,7 @@ namespace Core.Combinatorics
             return new Enumerator(SourceValues, CombinationLength);
         }
 
-        private struct Enumerator : IEnumerator<IList<T>>
+        private struct Enumerator : IEnumerator<ReadOnlyCollection<T>>
         {
             private readonly IReadOnlyList<T> values;
             private readonly int combiLength;
@@ -195,7 +201,7 @@ namespace Core.Combinatorics
                 Current = Array.AsReadOnly(current);
             }
 
-            public IList<T> Current { get;  }
+            public ReadOnlyCollection<T> Current { get;  }
 
             object IEnumerator.Current => Current;
 
