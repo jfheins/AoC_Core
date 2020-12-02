@@ -50,6 +50,7 @@ namespace Core.Combinatorics
             {
                 myParent = source;
                 myPermutationsEnumerator = (Permutations<bool>.Enumerator)myParent.myPermutations.GetEnumerator();
+                currentArray = new T[source.LowerIndex];
             }
 
             /// <summary>
@@ -78,25 +79,23 @@ namespace Core.Combinatorics
             /// </remarks>
             private void ComputeCurrent()
             {
-                if (myCurrentList == null)
+                var valIndex = 0;
+                var curIndex = 0;
+                var currentPermutation = (IList<bool>)myPermutationsEnumerator.Current;
+                var count = currentPermutation.Count;
+                for (var i = 0; i < count; ++i)
                 {
-                    myCurrentList = new List<T>();
-                    var index = 0;
-                    var currentPermutation = (IList<bool>)myPermutationsEnumerator.Current;
-                    for (var i = 0; i < currentPermutation.Count; ++i)
+                    if (currentPermutation[i] == false)
                     {
-                        if (currentPermutation[i] == false)
-                        {
-                            myCurrentList.Add(myParent.myValues[index]);
-                            if (myParent.Type == GenerateOption.WithoutRepetition)
-                                ++index;
-                        }
-                        else
-                        {
-                            ++index;
-                        }
+                        currentArray[curIndex++] = myParent.myValues[valIndex];
+                        if (myParent.Type == GenerateOption.WithoutRepetition)
+                            ++valIndex;
                     }
-                }
+                    else
+                    {
+                        ++valIndex;
+                    }
+                }                
             }
 
             /// <summary>
@@ -115,33 +114,20 @@ namespace Core.Combinatorics
             public bool MoveNext()
             {
                 var ret = myPermutationsEnumerator.MoveNext();
-                myCurrentList = null;
+                if (ret)                
+                    ComputeCurrent();
                 return ret;
             }
 
             /// <summary>
             ///     The current combination
             /// </summary>
-            public IList<T> Current
-            {
-                get
-                {
-                    ComputeCurrent();
-                    return myCurrentList!;
-                }
-            }
+            public IList<T> Current => currentArray;
 
             /// <summary>
             ///     The current combination
             /// </summary>
-            object IEnumerator.Current
-            {
-                get
-                {
-                    ComputeCurrent();
-                    return myCurrentList!;
-                }
-            }
+            object IEnumerator.Current => currentArray;
 
             /// <summary>
             ///     Cleans up non-managed resources, of which there are none used here.
@@ -156,7 +142,7 @@ namespace Core.Combinatorics
             /// <summary>
             ///     The current list of values, this is lazy evaluated by the Current property.
             /// </summary>
-            private List<T>? myCurrentList;
+            private T[] currentArray;
 
             /// <summary>
             ///     An enumertor of the parents list of lexicographic orderings.

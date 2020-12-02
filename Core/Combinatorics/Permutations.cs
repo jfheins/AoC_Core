@@ -103,9 +103,7 @@ namespace Core.Combinatorics
             {
                 get
                 {
-                    if (myPosition == Position.InSet)
-                        return new List<T>(myValues);
-                    throw new InvalidOperationException();
+                    return myPosition == Position.InSet ? myValues : throw new InvalidOperationException();
                 }
             }
 
