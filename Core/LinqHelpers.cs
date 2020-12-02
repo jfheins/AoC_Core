@@ -68,30 +68,6 @@ namespace Core
                 yield return data;
         }
 
-        public static int[] ParseInts(this string str, int? count = null)
-        {
-            var regex = new Regex(@"([-+]?[0-9]+)");
-            var matches = regex.Matches(str);
-            if (count != null)
-            {
-                Debug.Assert(matches.Count == count);
-            }
-
-            return matches.Select(match => int.Parse(match.Value)).ToArray();
-        }
-
-        public static long[] ParseLongs(this string str, int? count = null)
-        {
-            var regex = new Regex(@"([-+]?[0-9]+)");
-            var matches = regex.Matches(str);
-            if (count != null)
-            {
-                Debug.Assert(matches.Count == count);
-            }
-
-            return matches.Select(match => long.Parse(match.Value)).ToArray();
-        }
-
         public static IEnumerable<ValueTuple<T1, T2>> CartesianProduct<T1, T2>(this IEnumerable<T1> a,
             IEnumerable<T2> b)
         {
@@ -379,27 +355,6 @@ namespace Core
                 if (count != null)
                     Debug.Assert(matches.Count == count);
                 yield return matches.Select(x => x.Value).ToArray();
-            }
-        }
-        public static IEnumerable<ValueTuple<T1, T2, T3, T4>> MatchRegexGroups4<T1, T2, T3, T4>(
-            this IEnumerable<string> source, 
-            string pattern,
-            int? count = null)
-        {
-            var regex = new Regex(pattern, RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
-            
-            (T1, T2, T3, T4) ResultFactory(IList<Group> groups)
-            {
-                T Parser<T>(int idx) => (T)Convert.ChangeType(groups[idx].Value, typeof(T));
-                return (Parser<T1>(1), Parser<T2>(2), Parser<T3>(3), Parser<T4>(4));
-            }
-
-            foreach (var line in source)
-            {
-                IList<Group> matches = regex.Match(line).Groups;
-                if (count != null)
-                    Debug.Assert(matches.Count == count);
-                yield return ResultFactory(matches);
             }
         }
     }
