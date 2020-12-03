@@ -12,11 +12,11 @@ namespace Core
     public class FiniteGrid2D<TNode> : ICollection<(Point pos, TNode value)>
         where TNode : notnull
     {
-        public Rectangle Bounds { get; private set; }
-        public int Count { get; }
+        protected Rectangle Bounds { get; private set; }
+        public int Count => _values.Count;
         public bool IsReadOnly { get; }
 
-        private readonly Dictionary<Point, TNode> _values = new();
+        protected readonly Dictionary<Point, TNode> _values = new();
 
 
         public FiniteGrid2D(int width, int height, TNode value)
@@ -55,23 +55,25 @@ namespace Core
             Bounds = source.Bounds;
         }
 
-        public TNode this[int x, int y]
+        public virtual bool Contains(Point pos) => Bounds.Contains(pos);
+
+        public virtual TNode this[int x, int y]
         {
             get => this[new Point(x, y)];
             set => this[new Point(x, y)] = value;
         }
 
-        public TNode this[Point pos]
+        public virtual TNode this[Point pos]
         {
             get => _values[pos];
             set => _values[pos] = value;
         }
 
-        public TNode GetValueOrDefault(Point pos, TNode defaultValue)
+        public virtual TNode GetValueOrDefault(Point pos, TNode defaultValue)
             => _values.GetValueOrDefault(pos, defaultValue);
 
-        public IEnumerable<Point> Get4NeighborsOf(Point pos)
-            => pos.MoveLURD().Where(Bounds.Contains);
+        public virtual IEnumerable<Point> Get4NeighborsOf(Point pos)
+            => pos.MoveLURD().Where(Contains);
 
         public override string ToString()
         {
@@ -95,7 +97,7 @@ namespace Core
             => throw new NotImplementedException();
         public bool Remove((Point pos, TNode value) item) => _values.Remove(item.pos);
         public IEnumerator<(Point pos, TNode value)> GetEnumerator() => new EnumWrapper(_values);
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 
         private struct EnumWrapper : IEnumerator<(Point pos, TNode value)>
