@@ -342,6 +342,16 @@ namespace Core
                 yield return sum;
             }
         }
+        public static IEnumerable<long> CumulativeSum(this IEnumerable<long> sequence)
+        {
+            Contract.Assert(sequence != null, nameof(sequence));
+            long sum = 0;
+            foreach (var item in sequence)
+            {
+                sum += item;
+                yield return sum;
+            }
+        }
         public static IEnumerable<(int x, int y, T value)> WithXY<T>(this IEnumerable<IEnumerable<T>> sequence)
             => sequence.SelectMany((line, y) => line.Select((item, x) => (x, y, item)));
 
