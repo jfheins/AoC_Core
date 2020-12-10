@@ -209,7 +209,7 @@ namespace Core
             }
         }
 
-        public static IEnumerable<(int count, T first)> Runs<T>(this IEnumerable<T> enumerable, EqualityComparer<T>? comparer = null)
+        public static IEnumerable<(int Count, T Element)> Runs<T>(this IEnumerable<T> enumerable, EqualityComparer<T>? comparer = null)
         {
             Contract.Assert(enumerable != null, nameof(enumerable));
             comparer ??= EqualityComparer<T>.Default;

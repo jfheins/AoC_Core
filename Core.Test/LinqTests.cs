@@ -37,8 +37,8 @@ namespace Core.Test
 
             foreach (var (run, chunk) in runs.Zip(chunks))
             {
-                Assert.AreEqual(chunk.Length, run.count);
-                Assert.AreEqual(chunk.ToArray()[0], run.first);
+                Assert.AreEqual(chunk.Length, run.Count);
+                Assert.AreEqual(chunk.ToArray()[0], run.Element);
             }
         }
 
