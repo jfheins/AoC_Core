@@ -209,6 +209,33 @@ namespace Core
             }
         }
 
+        public static IEnumerable<(int count, T first)> Runs<T>(this IEnumerable<T> enumerable, EqualityComparer<T>? comparer = null)
+        {
+            Contract.Assert(enumerable != null, nameof(enumerable));
+            comparer ??= EqualityComparer<T>.Default;
+
+            var count = -1;
+            var reference = default(T);
+
+            using var e = enumerable.GetEnumerator();
+            while (e.MoveNext())
+            {
+                if (count == -1)
+                {
+                    reference = e.Current;
+                    count = 0;
+                }
+                else if (!comparer.Equals(e.Current, reference))
+                {
+                    yield return (count, reference!);
+                    reference = e.Current;
+                    count = 0;
+                }
+                count++;
+            }
+            yield return (count, reference!);
+        }
+
         public static IEnumerable<ImmutableList<T>> Chunks<T>(this IEnumerable<T> enumerable, EqualityComparer<T>? comparer = null)
         {
             Contract.Assert(enumerable != null, nameof(enumerable));

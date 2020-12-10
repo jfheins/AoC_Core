@@ -24,6 +24,24 @@ namespace Core.Test
             CollectionAssert.AreEqual(expectedChunks, chunks, $"string: '{data}'");
         }
 
+        [DataTestMethod]
+        [DataRow("AABBCCDD")]
+        [DataRow("AAAABBC")]
+        [DataRow("ABGR")]
+        [DataRow("AAAAAAA")]
+        [DataRow("1100111")]
+        public void RightRuns(string data)
+        {
+            var runs = data.Runs().ToList();
+            var chunks = data.Chunks().ToList();
+
+            foreach (var (run, chunk) in runs.Zip(chunks))
+            {
+                Assert.AreEqual(chunk.Length, run.count);
+                Assert.AreEqual(chunk.ToArray()[0], run.first);
+            }
+        }
+
         [TestMethod]
         public void RightChunksNonString()
         {
