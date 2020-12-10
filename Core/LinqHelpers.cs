@@ -112,20 +112,18 @@ namespace Core
             return (min!, max!);
         }
 
-        public static int Diff(this ValueTuple<int, int> pair)
-        {
-            return pair.Item2 - pair.Item1;
-        }
+        public static int Diff(this ValueTuple<int, int> pair) => pair.Item2 - pair.Item1;
 
-        public static long Diff(this ValueTuple<long, long> pair)
-        {
-            return pair.Item2 - pair.Item1;
-        }
+        public static long Diff(this ValueTuple<long, long> pair) => pair.Item2 - pair.Item1;
 
-        public static double Diff(this ValueTuple<double, double> pair)
-        {
-            return pair.Item2 - pair.Item1;
-        }
+        public static double Diff(this ValueTuple<double, double> pair) => pair.Item2 - pair.Item1;
+
+        public static IEnumerable<int> Diff(this IEnumerable<int> source)
+            => source.PairwiseWithOverlap().Select(x => x.Diff());
+        public static IEnumerable<long> Diff(this IEnumerable<long> source)
+            => source.PairwiseWithOverlap().Select(x => x.Diff());
+        public static IEnumerable<double> Diff(this IEnumerable<double> source)
+            => source.PairwiseWithOverlap().Select(x => x.Diff());
 
         public static bool AreAllEqual<T>(this IEnumerable<T> source) where T : IEquatable<T>
         {
