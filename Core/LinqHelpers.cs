@@ -136,6 +136,11 @@ namespace Core
             return source.Where(x => x != null);
         }
 
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source) where T: struct
+        {
+            return source.Where(x => x != null).Select(x => x!.Value);
+        }
+
         /// <summary>
         ///     Liefert zu einer Enumeration alle Paare zurück. Eine Enumeration mit n Elementen hat genau n-1 Paare.
         ///     Die Quelle wird nur einmal durchlaufen. Für jedes Paar wird ein neues Tupel generiert.

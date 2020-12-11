@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Core
@@ -75,6 +76,9 @@ namespace Core
         public virtual IEnumerable<Point> Get4NeighborsOf(Point pos)
             => pos.MoveLURD().Where(Contains);
 
+        public virtual IEnumerable<Point> Get8NeighborsOf(Point pos)
+    => pos.MoveLURDDiag().Where(Contains);
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -87,6 +91,12 @@ namespace Core
                 _ = sb.AppendLine();
             }
             return sb.ToString();
+        }
+
+        public IEnumerable<Point> Line(Point exclusiveStart, Size direction)
+        {
+            return Enumerable.Range(1, int.MaxValue).Select(n => exclusiveStart + n * direction)
+                .TakeWhile(Contains);
         }
 
         public void Add((Point pos, TNode value) item) => _values.Add(item.pos, item.value);

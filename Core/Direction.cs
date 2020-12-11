@@ -13,6 +13,17 @@ namespace Core
         Right,
         Down
     }
+    public enum Direction8
+    {
+        UpLeft,
+        Up,
+        UpRight,
+        Left,
+        Right,
+        DownLeft,
+        Down,
+        DownRight
+    }
 
     public static class Directions
     {
@@ -22,22 +33,32 @@ namespace Core
         public static Direction[] AntiReading => new Direction[] { Direction.Left, Direction.Up };
         public static Direction[] Reading => new Direction[] { Direction.Right, Direction.Down };
         public static Direction[] All4 => new Direction[] { Direction.Left, Direction.Up, Direction.Right, Direction.Down };
+        public static Direction8[] All8 => new Direction8[] { Direction8.UpLeft, Direction8.Up, Direction8.UpRight,
+            Direction8.Left, Direction8.Right, Direction8.DownLeft, Direction8.Down, Direction8.DownRight };
     }
 
     public static class DirectionExtensions
     {
         private static readonly Dictionary<Direction, Size> _mapDirectionToSize = new()
         {
-                {Direction.Left, new Size(-1, 0)},
-                {Direction.Up, new Size(0, -1)},
-                {Direction.Right, new Size(1, 0)},
-                {Direction.Down, new Size(0, 1)}
-            };
+            { Direction.Left, new Size(-1, 0) },
+            { Direction.Up, new Size(0, -1) },
+            { Direction.Right, new Size(1, 0) },
+            { Direction.Down, new Size(0, 1) }
+        };
 
         public static Size ToSize(this Direction dir) => _mapDirectionToSize[dir];
         public static Point MoveTo(this Point p, Direction dir, int steps = 1) => p + (steps * _mapDirectionToSize[dir]);
         public static IEnumerable<Point> MoveLURD(this Point p)
             => ((IEnumerable<Size>)_mapDirectionToSize.Values).Select(s => p + s);
+        public static IEnumerable<Point> MoveLURDDiag(this Point p)
+        {
+            var sizes = new[] {  new Size(-1, -1), new Size(0, -1),  new Size(1, -1),
+                new Size(-1, 0), new Size(1, 0),
+                new Size(-1, 1), new Size(0, 1),  new Size(1, 1),
+            };
+            return sizes.Select(s => p + s);
+        }
 
         public static Direction TurnClockwise(this Direction dir) => (Direction)(((int)dir + 1) % 4);
         public static Direction TurnCounterClockwise(this Direction dir) => (Direction)(((int)dir + 3) % 4);
