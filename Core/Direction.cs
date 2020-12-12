@@ -59,9 +59,18 @@ namespace Core
             };
             return sizes.Select(s => p + s);
         }
+        public static int Manhattan(this Point p) => Math.Abs(p.X) + Math.Abs(p.Y);
+        public static Point TurnClockwise(this Point p, int degrees)
+        {
+            var rad = degrees * Math.PI / 180;
+            var x = p.X * Math.Cos(rad) - p.Y * Math.Sin(rad);
+            var y = p.X * Math.Sin(rad) + p.Y * Math.Cos(rad);
+            return new Point(Convert.ToInt32(x), Convert.ToInt32(y));
+        }
+        public static Point TurnCounterClockwise(this Point p, int degrees) => p.TurnClockwise(-degrees);
 
-        public static Direction TurnClockwise(this Direction dir) => (Direction)(((int)dir + 1) % 4);
-        public static Direction TurnCounterClockwise(this Direction dir) => (Direction)(((int)dir + 3) % 4);
+        public static Direction TurnClockwise(this Direction dir, int times = 1) => (Direction)(((int)dir + times) % 4);
+        public static Direction TurnCounterClockwise(this Direction dir, int times = 1) => (Direction)(((int)dir + (3 * times)) % 4);
         public static Direction Opposite(this Direction dir) => (Direction)(((int)dir + 2) % 4);
 
 
