@@ -21,6 +21,15 @@ namespace Core
 
             return matches.Select(match => int.Parse(match.Value)).ToArray();
         }
+        public static int[] ParseNNInts(this string str, int? count = null)
+        {
+            var regex = new Regex(@"([0-9]+)");
+            var matches = regex.Matches(str);
+            if (count != null)
+                Debug.Assert(matches.Count == count);
+
+            return matches.Select(match => int.Parse(match.Value)).ToArray();
+        }
 
         public static long[] ParseLongs(this string str, int? count = null)
         {
