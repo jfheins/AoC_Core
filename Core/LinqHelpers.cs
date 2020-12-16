@@ -81,9 +81,9 @@ namespace Core
             return a.SelectMany(x => b, (x, y) => (x, y));
         }
 
-        public static int Product(this IEnumerable<int> source)
+        public static long Product(this IEnumerable<int> source)
         {
-            return source.Aggregate(1, (a, b) => a * b);
+            return source.Aggregate(1L, (a, b) => a * b);
         }
 
         public static long Product(this IEnumerable<long> source)
