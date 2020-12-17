@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Core
 {
-    public struct Point4 : IEquatable<Point4>
+    public interface ICanEnumerateNeighbors<T>
+    {
+        public IEnumerable<T> GetNeighborsDiag();
+    }
+
+    public struct Point4 : IEquatable<Point4>, ICanEnumerateNeighbors<Point4>
     {
         public static readonly Point4 Empty = new Point4(0, 0, 0, 0);
 
@@ -37,6 +43,17 @@ namespace Core
                 throw new ArgumentException("Not enough elements in the array!");
 
             return new Point4(arr[offset], arr[offset + 1], arr[offset + 2], arr[offset + 3]);
+        }
+
+        public IEnumerable<Point4> GetNeighborsDiag()
+        {
+            var deltas = new[] { -1, 0, 1 };
+            foreach (var dx in deltas)
+                foreach (var dy in deltas)
+                    foreach (var dz in deltas)
+                        foreach (var dt in deltas)
+                            if (dx != 0 || dy != 0 || dz != 0 || dt != 0)
+                                yield return TranslateBy(dx, dy, dz, dt);
         }
 
         public static bool operator ==(Point4 left, Point4 right)

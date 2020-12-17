@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Core
 {
-    public struct Point3 : IEquatable<Point3>
+    public struct Point3 : IEquatable<Point3>, ICanEnumerateNeighbors<Point3>
     {
         public static readonly Point3 Empty = new Point3(0, 0, 0);
 
@@ -40,6 +41,17 @@ namespace Core
                 throw new ArgumentException("Not enough elements in the array!");
 
             return new Point3(arr[offset], arr[offset + 1], arr[offset + 2]);
+        }
+
+
+        public IEnumerable<Point3> GetNeighborsDiag()
+        {
+            var deltas = new[] { -1, 0, 1 };
+            foreach (var dx in deltas)
+                foreach (var dy in deltas)
+                    foreach (var dz in deltas)
+                        if (dx != 0 || dy != 0 || dz != 0)
+                            yield return TranslateBy(dx, dy, dz);
         }
 
         public static bool operator ==(Point3 left, Point3 right)
