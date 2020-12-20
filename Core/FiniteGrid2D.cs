@@ -16,6 +16,8 @@ namespace Core
         protected Rectangle Bounds { get; private set; }
         public int Count => _values.Count;
         public bool IsReadOnly { get; }
+        public int Width => Bounds.Width;
+        public int Height => Bounds.Height;
 
         protected readonly Dictionary<Point, TNode> _values = new();
 
@@ -108,6 +110,33 @@ namespace Core
         public bool Remove((Point pos, TNode value) item) => _values.Remove(item.pos);
         public IEnumerator<(Point pos, TNode value)> GetEnumerator() => new EnumWrapper(_values);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable<TNode> GetEdge(Direction dir)
+        {
+            var dx = Enumerable.Empty<int>();
+            var dy = Enumerable.Empty<int>();
+            if (dir == Direction.Up)
+            {
+                dx = Enumerable.Range(Bounds.X, Bounds.Width);
+                dy = Bounds.Y.ToEnumerable();
+            }
+            if (dir == Direction.Down)
+            {
+                dx = Enumerable.Range(Bounds.X, Bounds.Width);
+                dy = (Bounds.Bottom - 1).ToEnumerable();
+            }
+            if (dir == Direction.Left)
+            {
+                dx = Bounds.X.ToEnumerable();
+                dy = Enumerable.Range(Bounds.Y, Bounds.Height);
+            }
+            if (dir == Direction.Right)
+            {
+                dx = (Bounds.Right - 1).ToEnumerable();
+                dy = Enumerable.Range(Bounds.Y, Bounds.Height);
+            }
+            return dx.CartesianProduct(dy).Select(t => this[t.Item1, t.Item2]);
+        }
 
 
         private struct EnumWrapper : IEnumerator<(Point pos, TNode value)>
