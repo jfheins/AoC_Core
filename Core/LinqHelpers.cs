@@ -404,5 +404,16 @@ namespace Core
                 yield return matches.Select(x => x.Value).ToArray();
             }
         }
+
+        public static IEnumerable<T> StepBy<T>(this IEnumerable<T> source, int stepSize, int skipFirst = 0)
+        {
+            long counter = 0;
+            foreach (var item in source.Skip(skipFirst))
+            {
+                if (counter == 0)
+                    yield return item;
+                counter = (counter + 1) % stepSize;
+            }
+        }
     }
 }

@@ -66,5 +66,21 @@ namespace Core.Test
             var range = Enumerable.Range(134564, 450596);
             Assert.AreEqual(166392, range.Count(Check));
         }
+
+
+        [TestMethod]
+        public void StepBy3()
+        {
+            var array = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+            var result = array.StepBy(3).ToArray();
+            CollectionAssert.AreEqual(new int[] {1, 4, 7} , result);
+            result = array.StepBy(3, 1).ToArray();
+            CollectionAssert.AreEqual(new int[] { 2, 5, 8 }, result);
+            result = array.StepBy(4, 3).ToArray();
+            CollectionAssert.AreEqual(new int[] { 4, 8 }, result);
+            result = array.StepBy(1, 7).ToArray();
+            CollectionAssert.AreEqual(new int[] { 8, 9 }, result);
+        }
     }
 }
