@@ -415,5 +415,15 @@ namespace Core
                 counter = (counter + 1) % stepSize;
             }
         }
+
+        public static TResult[] SelectArray<T, TResult>(this T[] source, Func<T, TResult> selector)
+        {
+            var result = new TResult[source.Length];
+            for (int i = 0; i < source.Length; i++)
+            {
+                result[i] = selector(source[i]);
+            }
+            return result;
+        }
     }
 }
