@@ -91,6 +91,11 @@ namespace Core
             return source.Aggregate(1L, (a, b) => a * b);
         }
 
+        public static T Median<T>(this IList<T> source)
+        {
+            return source[source.Count / 2];
+        }
+
         public static (T min, T max)? MinMax<T>(this IEnumerable<T> source)
         {
             return source.MinMax(x => x);
