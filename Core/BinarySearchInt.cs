@@ -17,7 +17,9 @@ namespace Core
         }
 
         public int FindFirst(int start = 0) => SearchOpenInterval(start, true).upper;
+        public int FindFirst(int start, int end) => SearchInterval(start, end, true).upper;
         public int FindLast(int start = 0) => SearchOpenInterval(start, false).lower;
+        public int FindLast(int start, int end) => SearchInterval(start, end, false).lower;
 
         private (int lower, int upper) SearchOpenInterval(int lowerLimit, bool searchValue)
         {
