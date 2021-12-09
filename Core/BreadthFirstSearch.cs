@@ -17,9 +17,9 @@ namespace Core
         /// </summary>
         /// <param name="comparer">Comparison function that determines node equality</param>
         /// <param name="expander">Callback to get the possible nodes from a source node</param>
-        public BreadthFirstSearch(IEqualityComparer<TNode> comparer, Func<TNode, IEnumerable<TNode>> expander)
+        public BreadthFirstSearch(IEqualityComparer<TNode>? comparer, Func<TNode, IEnumerable<TNode>> expander)
         {
-            _comparer = new NodeComparer(comparer);
+            _comparer = new NodeComparer(comparer ?? EqualityComparer<TNode>.Default);
             _expander = expander;
         }
 
@@ -137,6 +137,40 @@ namespace Core
             }
 
             return results;
+        }
+        public int FindLeafs2(TNode initialNode,
+                                           ProgressReporterCallback? progressReporter = null,
+                                           int minResults = int.MaxValue)
+        {
+            var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
+            var initial = new NodeWithPredecessor(initialNode);
+            var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { initial };
+            var results = new List<IPath<TNode>>();
+
+            while (nextNodes.Count > 0)
+            {
+                progressReporter?.Invoke(visitedNodes.Count, nextNodes.Count);
+                visitedNodes.UnionWith(nextNodes);
+
+                var expanded = SequentialExpandTuple(nextNodes, visitedNodes).ToList();
+
+                nextNodes.Clear();
+                foreach (var (pred, nodes) in expanded)
+                {
+                    var successorNodes = nodes.ToList();
+                    if (successorNodes.Any())
+                        nextNodes.UnionWith(successorNodes);
+                    else
+                        results.Add(new BfsPath(pred));
+                }
+
+                if (results.Count >= minResults)
+                {
+                    break;
+                }
+            }
+
+            return visitedNodes.Count;
         }
 
 
