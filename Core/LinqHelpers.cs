@@ -397,6 +397,10 @@ namespace Core
         public static ValueTuple<T, T, T> ToTuple3<T>(this IList<T> source) => (source[0], source[1], source[2]);
         public static ValueTuple<T, T, T, T> ToTuple4<T>(this IList<T> source) => (source[0], source[1], source[2], source[3]);
 
+        public static ValueTuple<T, T> ToTuple2<T>(this IEnumerable<T> source) => source.ToList().ToTuple2();
+        public static ValueTuple<T, T, T> ToTuple3<T>(this IEnumerable<T> source) => source.ToList().ToTuple3();
+        public static ValueTuple<T, T, T, T> ToTuple4<T>(this IEnumerable<T> source) => source.ToList().ToTuple4();
+
 
         public static IEnumerable<string[]> MatchRegexGroups(this IEnumerable<string> source, string pattern, int? count = null)
         {
