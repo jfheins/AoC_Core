@@ -91,7 +91,7 @@ namespace Core
             return source.Aggregate(1L, (a, b) => a * b);
         }
 
-        public static T Median<T>(this IList<T> source)
+        public static T CenterItem<T>(this IList<T> source)
         {
             return source[source.Count / 2];
         }
