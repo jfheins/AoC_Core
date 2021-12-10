@@ -138,14 +138,12 @@ namespace Core
 
             return results;
         }
-        public int FindLeafs2(TNode initialNode,
-                                           ProgressReporterCallback? progressReporter = null,
-                                           int minResults = int.MaxValue)
+        public IReadOnlyList<TNode> FindReachable(TNode initialNode,
+                                 ProgressReporterCallback? progressReporter = null)
         {
             var visitedNodes = new HashSet<NodeWithPredecessor>(_comparer);
             var initial = new NodeWithPredecessor(initialNode);
             var nextNodes = new HashSet<NodeWithPredecessor>(_comparer) { initial };
-            var results = new List<IPath<TNode>>();
 
             while (nextNodes.Count > 0)
             {
@@ -160,17 +158,10 @@ namespace Core
                     var successorNodes = nodes.ToList();
                     if (successorNodes.Any())
                         nextNodes.UnionWith(successorNodes);
-                    else
-                        results.Add(new BfsPath(pred));
-                }
-
-                if (results.Count >= minResults)
-                {
-                    break;
                 }
             }
 
-            return visitedNodes.Count;
+            return visitedNodes.Select(n => n.Item).ToList();
         }
 
 
