@@ -54,6 +54,15 @@ namespace Core
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
+        public static void AddToList<TKey, TValue>(this IDictionary<TKey, List<TValue>> dict, TKey key, TValue value) where TKey : notnull
+        {
+            if (dict.TryGetValue(key, out var list))
+                list.Add(value);
+            else
+                dict[key] = new List<TValue> { value };
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddOrModify<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue initValue, Func<TValue, TValue> modifier) where TKey : notnull
         {
