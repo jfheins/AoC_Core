@@ -100,6 +100,9 @@ namespace Core
             return source.Aggregate(1L, (a, b) => a * b);
         }
 
+        public static int OneBasedModulo(this int x, int ringSize) => (x + ringSize - 1) % ringSize + 1;
+        public static long OneBasedModulo(this long x, int ringSize) => (x + ringSize - 1) % ringSize + 1;
+
         public static T CenterItem<T>(this IList<T> source)
         {
             return source[source.Count / 2];

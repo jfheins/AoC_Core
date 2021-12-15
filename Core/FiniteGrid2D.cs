@@ -18,6 +18,8 @@ namespace Core
         public bool IsReadOnly { get; }
         public int Width => Bounds.Width;
         public int Height => Bounds.Height;
+        public Point TopLeft => new(0, 0);
+        public Point BottomRight => new(Width - 1, Height - 1);
 
         protected readonly Dictionary<Point, TNode> _values = new();
 
@@ -74,6 +76,15 @@ namespace Core
 
         public virtual TNode GetValueOrDefault(Point pos, TNode defaultValue)
             => _values.GetValueOrDefault(pos, defaultValue);
+
+        public virtual TNode GetValueWraparound(Point p) => GetValueWraparound(p.X, p.Y);
+        public virtual TNode GetValueWraparound(int x, int y)
+        {
+            var wrapped = new Point(Wrap(x, Width), Wrap(y, Height));
+            return _values[wrapped];
+
+            static int Wrap(int coord, int limit) => ((coord % limit) + limit) % limit;
+        }
 
         public virtual IEnumerable<Point> Get4NeighborsOf(Point pos)
             => pos.MoveLURD().Where(Contains);

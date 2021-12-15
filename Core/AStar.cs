@@ -24,12 +24,13 @@ namespace Core
         ///     Prepares a AStar search.
         /// </summary>
         /// <param name="expander">Callback to get the possible nodes from a source node</param>
-        public AStarSearch(SCG.IEqualityComparer<TNode> comparer,
+        public AStarSearch(SCG.IEqualityComparer<TNode>? comparer,
                               Func<TNode, SCG.IEnumerable<(TNode node, float edgeCost)>> expander)
         {
-            _comparer = comparer;
+            _comparer = comparer ?? EqualityComparer<TNode>.Default;
             _expander = expander;
-            _progressCallback = (set, visited) => Console.WriteLine($"A* visited {visited} nodes, working on {set}.");
+            _progressCallback = //(_, _) => { };
+            (set, visited) => Console.WriteLine($"A* visited {visited} nodes, working on {set}.");
         }
 
         public AStarPath? FindFirst(TNode initialNode,
@@ -108,7 +109,7 @@ namespace Core
 
             while (nodeQueue.Count > 0)
             {
-                InvokeProgress(visitedNodes.Count, nodeQueue.Count);
+                InvokeProgress(nodeQueue.Count, visitedNodes.Count);
 
                 var currentNode = PopMinNode();
                 _ = visitedNodes.Add(currentNode.Item);

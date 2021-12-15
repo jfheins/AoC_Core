@@ -13,11 +13,8 @@ namespace Core
         }
         public static FiniteGrid2D<char> FromFile(string filePath, Range lines, Range columns)
         {
-            var content = File.ReadAllLines(filePath)[lines];
-            for (int i = 0; i < content.Length; i++)
-                content[i] = content[i][columns];
-
-            return new FiniteGrid2D<char>(content);
+            var content = File.ReadAllLines(filePath);
+            return FromArray(content, lines, columns);
         }
         public static FiniteGrid2D<char> FromArray(string[] content, Range lines, Range columns)
         {

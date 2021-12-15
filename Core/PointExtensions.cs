@@ -29,6 +29,8 @@ namespace Core
             return sizes.Select(s => p + s);
         }
         public static int Manhattan(this Point p) => Math.Abs(p.X) + Math.Abs(p.Y);
+        public static int ManhattanDistTo(this Point p, Point other)
+            => Math.Abs(p.X - other.X) + Math.Abs(p.Y - other.Y);
         public static Point TurnClockwise(this Point p, int degrees)
         {
             var rad = degrees * Math.PI / 180;
