@@ -19,10 +19,10 @@ namespace Core
         ///     Prepares a Dijkstra search.
         /// </summary>
         /// <param name="expander">Callback to get the possible nodes from a source node</param>
-        public DijkstraSearch(SCG.IEqualityComparer<TNode> comparer,
+        public DijkstraSearch(SCG.IEqualityComparer<TNode>? comparer,
                               Func<TNode, SCG.IEnumerable<(TNode node, float cost)>> expander)
         {
-            _comparer = comparer;
+            _comparer = comparer ?? EqualityComparer<TNode>.Default;
             _expander = expander;
         }
 
