@@ -215,6 +215,10 @@ namespace Core
             }
         }
 
+        public static IEnumerable<(T item, int count)> Histogram<T>(this IEnumerable<T> source) => source.Histogram(x => x);
+        public static IEnumerable<(TKey item, int count)> Histogram<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
+            => source.ToLookup(keySelector).Select(group => (group.Key, group.Count()));
+
         public static IEnumerable<(int Count, T Element)> Runs<T>(this IEnumerable<T> enumerable, EqualityComparer<T>? comparer = null)
         {
             Contract.Assert(enumerable != null, nameof(enumerable));
