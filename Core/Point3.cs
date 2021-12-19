@@ -6,7 +6,7 @@ namespace Core
 {
     public struct Point3 : IEquatable<Point3>, ICanEnumerateNeighbors<Point3>
     {
-        public static readonly Point3 Empty = new Point3(0, 0, 0);
+        public static readonly Point3 Empty = new(0, 0, 0);
 
         public Point3(int x, int y, int z)
         {
@@ -14,6 +14,7 @@ namespace Core
             Y = y;
             Z = z;
         }
+        public override string ToString() => $"<X: {X}, Y: {Y}, Z: {Z}>";
 
         public bool IsEmpty => this.Equals(Empty);
         public int X { get; set; }
@@ -26,11 +27,14 @@ namespace Core
 
         public override bool Equals(object? obj) => (obj is Point3 p) && Equals(p);
 
-        public Point3 TranslateBy(int dx, int dy, int dz) => new Point3(X + dx, Y + dy, Z + dz);
+        public Point3 TranslateBy(int dx, int dy, int dz) => new(X + dx, Y + dy, Z + dz);
         public Point3 TranslateBy((int dx, int dy, int dz) velocity)
-            => new Point3(X + velocity.dx, Y + velocity.dy, Z + velocity.dz);
+            => new(X + velocity.dx, Y + velocity.dy, Z + velocity.dz);
         public Point3 TranslateBy(Vector3 velocity)
-            => new Point3(X + (int)velocity.X, Y + (int)velocity.Y, Z + (int)velocity.Z);
+            => new(X + (int)velocity.X, Y + (int)velocity.Y, Z + (int)velocity.Z);
+
+        public Point3 TranslateBy(Point3 offset)
+            => TranslateBy(offset.X, offset.Y, offset.Z);
 
         public static Point3 FromArray(int[] arr, int offset = 0)
         {
@@ -64,6 +68,27 @@ namespace Core
             return !(left == right);
         }
 
-        public override string ToString() => $"<X: {X}, Y: {Y}, Z: {Z}>";
+        public static Point3 operator +(Point3 l, Point3 r)
+            => new(l.X + r.X, l.Y + r.Y, l.Z + r.Z);
+
+        public static Point3 operator -(Point3 l, Point3 r)
+            => new (l.X - r.X, l.Y - r.Y, l.Z - r.Z);
+
+        public Point3 RotateX()
+        {
+            return new Point3(X, -Z, Y);
+        }
+
+        public Point3 RotateY()
+        {
+            return new Point3(Z, Y, -X);
+        }
+
+        public Point3 RotateZ()
+        {
+            return new Point3(-Y, X, Z);
+        }
+
+        public Point3 Inverse() => new(-X, -Y, -Z);
     }
 }
