@@ -113,16 +113,11 @@ namespace Core
         public virtual IEnumerable<Point> Get8NeighborsOf(Point pos)
             => pos.MoveLURDDiag().Where(Contains);
 
-        public virtual IEnumerable<(Point pos, TNode value)> GetPointWith8Neighbors(Point pos, TNode defaultValue)
+        public IEnumerable<TNode> GetPointWith8Neighbors(Point pos, TNode defaultValue)
         {
             for (int dy = -1; dy <= 1; dy++)
-            {
                 for (int dx = -1; dx <= 1; dx++)
-                {
-                    var p = pos.MoveBy(dx, dy);
-                    yield return (p, GetValueOrDefault(p, defaultValue));
-                }
-            }
+                    yield return _values.GetValueOrDefault(pos.MoveBy(dx, dy), defaultValue);
         }
 
         public override string ToString()
