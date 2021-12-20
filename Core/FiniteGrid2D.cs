@@ -13,16 +13,17 @@ namespace Core
     public class FiniteGrid2D<TNode> : ICollection<(Point pos, TNode value)>
         where TNode : notnull
     {
-        protected Rectangle Bounds { get; private set; }
+        public Rectangle Bounds { get => _bounds.Clone(); private set => _bounds = value; }
         public int Count => _values.Count;
         public bool IsReadOnly { get; }
         public int Width => Bounds.Width;
         public int Height => Bounds.Height;
+        public Size Size => Bounds.Size;
         public Point TopLeft => Bounds.Location;
         public Point BottomRight => new(Width - 1, Height - 1);
 
         protected readonly Dictionary<Point, TNode> _values = new();
-
+        private Rectangle _bounds;
 
         public FiniteGrid2D(int width, int height, TNode value)
             : this(width, height, p => value) { }
@@ -31,11 +32,14 @@ namespace Core
             : this(width, height, p => dataCallback(p.X, p.Y)) { }
 
         public FiniteGrid2D(Size size, Func<Point, TNode> dataCallback)
-            : this(size.Width, size.Height, dataCallback) { }
+            : this(new Rectangle(Point.Empty, size), dataCallback) { }
 
         public FiniteGrid2D(int width, int height, Func<Point, TNode> dataCallback)
+            : this(new Rectangle(0, 0, width, height), dataCallback) { }
+
+        public FiniteGrid2D(Rectangle bounds, Func<Point, TNode> dataCallback)
         {
-            Bounds = new Rectangle(0, 0, width, height);
+            Bounds = bounds;
             Fill(dataCallback);
         }
 
@@ -69,7 +73,9 @@ namespace Core
                 for (int x = Bounds.Top; x < Bounds.Width; x++)
                 {
                     var p = new Point(x, y);
-                    _values[p] = dataCallback(p);
+                    var val = dataCallback(p);
+                    if (val != null)
+                        _values[p] = dataCallback(p);
                 }
             }
         }
