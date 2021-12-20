@@ -18,8 +18,9 @@ namespace Core
         };
 
         public static Point MoveTo(this Point p, Direction dir, int steps = 1) => p + (steps * _mapDirectionToSize[dir]);
+        public static Point MoveBy(this Point p, int dx, int dy) => p + new Size(dx, dy);
         public static IEnumerable<Point> MoveLURD(this Point p)
-            => ((IEnumerable<Size>)_mapDirectionToSize.Values).Select(s => p + s);
+            => _mapDirectionToSize.Values.Select(s => p + s);
         public static IEnumerable<Point> MoveLURDDiag(this Point p)
         {
             var sizes = new[] {  new Size(-1, -1), new Size(0, -1),  new Size(1, -1),

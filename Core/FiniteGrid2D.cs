@@ -18,7 +18,7 @@ namespace Core
         public bool IsReadOnly { get; }
         public int Width => Bounds.Width;
         public int Height => Bounds.Height;
-        public Point TopLeft => new(0, 0);
+        public Point TopLeft => Bounds.Location;
         public Point BottomRight => new(Width - 1, Height - 1);
 
         protected readonly Dictionary<Point, TNode> _values = new();
@@ -36,15 +36,9 @@ namespace Core
         public FiniteGrid2D(int width, int height, Func<Point, TNode> dataCallback)
         {
             Bounds = new Rectangle(0, 0, width, height);
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    var p = new Point(x, y);
-                    _values[p] = dataCallback(p);
-                }
-            }
+            Fill(dataCallback);
         }
+
         public FiniteGrid2D(IEnumerable<IEnumerable<TNode>> data)
         {
             foreach (var (x, y, value) in data.WithXY())
@@ -59,6 +53,27 @@ namespace Core
             _values = new Dictionary<Point, TNode>(source._values);
             Bounds = source.Bounds;
         }
+        public FiniteGrid2D(FiniteGrid2D<TNode> source, int inflation, TNode fillValue)
+        {
+            Contract.Assert(source != null);
+            Contract.Assert(inflation >= 0, "inflation must be positive");
+
+            Bounds = source.Bounds.InflatedCopy(inflation, inflation);
+            Fill(p => source.GetValueOrDefault(p, fillValue));
+        }
+
+        private void Fill(Func<Point, TNode> dataCallback)
+        {
+            for (int y = Bounds.Left; y < Bounds.Height; y++)
+            {
+                for (int x = Bounds.Top; x < Bounds.Width; x++)
+                {
+                    var p = new Point(x, y);
+                    _values[p] = dataCallback(p);
+                }
+            }
+        }
+
 
         public virtual bool Contains(Point pos) => Bounds.Contains(pos);
 
@@ -90,16 +105,31 @@ namespace Core
             => pos.MoveLURD().Where(Contains);
 
         public virtual IEnumerable<Point> Get8NeighborsOf(Point pos)
-    => pos.MoveLURDDiag().Where(Contains);
+            => pos.MoveLURDDiag().Where(Contains);
+
+        public virtual IEnumerable<(Point pos, TNode value)> GetPointWith8Neighbors(Point pos, TNode defaultValue)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    var p = pos.MoveBy(dx, dy);
+                    yield return (p, GetValueOrDefault(p, defaultValue));
+                }
+            }
+        }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            for (int y = 0; y < Bounds.Height; y++)
+            for (int y = Bounds.Top; y < Bounds.Height; y++)
             {
-                for (int x = 0; x < Bounds.Width; x++)
+                for (int x = Bounds.Left; x < Bounds.Width; x++)
                 {
-                    _ = sb.Append(this[x, y].ToString());
+                    if (_values.TryGetValue(new Point(x, y), out var v))
+                        sb.Append(v.ToString());
+                    else
+                        sb.Append('?');
                 }
                 _ = sb.AppendLine();
             }
