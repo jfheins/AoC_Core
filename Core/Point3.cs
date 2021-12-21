@@ -74,21 +74,8 @@ namespace Core
         public static Point3 operator -(Point3 l, Point3 r)
             => new (l.X - r.X, l.Y - r.Y, l.Z - r.Z);
 
-        public Point3 RotateX()
-        {
-            return new Point3(X, -Z, Y);
-        }
-
-        public Point3 RotateY()
-        {
-            return new Point3(Z, Y, -X);
-        }
-
-        public Point3 RotateZ()
-        {
-            return new Point3(-Y, X, Z);
-        }
-
         public Point3 Inverse() => new(-X, -Y, -Z);
+
+        public Vector3 ToVector() => new(X, Y, Z);
     }
 }

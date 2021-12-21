@@ -22,19 +22,19 @@ namespace Core
         public static ValueTuple<T1, T2> ToTuple2<T1, T2>(this IEnumerable<string> source)
         {
             var list = source as IList<string> ?? source.ToList();
-            return (Parser<T1>(1), Parser<T2>(2));
+            return (Parser<T1>(0), Parser<T2>(1));
             T Parser<T>(int idx) => (T)Convert.ChangeType(list[idx], typeof(T));
         }
         public static ValueTuple<T1, T2, T3> ToTuple3<T1, T2, T3>(this IEnumerable<string> source)
         {
             var list = source as IList<string> ?? source.ToList();
-            return (Parser<T1>(1), Parser<T2>(2), Parser<T3>(3));
+            return (Parser<T1>(0), Parser<T2>(1), Parser<T3>(2));
             T Parser<T>(int idx) => (T)Convert.ChangeType(list[idx], typeof(T));
         }
         public static ValueTuple<T1, T2, T3, T4> ToTuple4<T1, T2, T3, T4>(this IEnumerable<string> source)
         {
             var list = source as IList<string> ?? source.ToList();
-            return (Parser<T1>(1), Parser<T2>(2), Parser<T3>(3), Parser<T4>(4));
+            return (Parser<T1>(0), Parser<T2>(1), Parser<T3>(2), Parser<T4>(3));
             T Parser<T>(int idx) => (T)Convert.ChangeType(list[idx], typeof(T));
         }
 
