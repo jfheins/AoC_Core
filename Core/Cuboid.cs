@@ -4,7 +4,16 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Core
 {
-    public record Cuboid
+    public interface ICuboid
+    {
+        Point3 Location { get; }
+        int Width { get; }
+        int Height { get; }
+        int Depth { get; }
+        Point3 TopRight { get; }
+    }
+
+    public record Cuboid : ICuboid
     {
         public Point3 Location { get; init; }
         /// <summary>
@@ -23,9 +32,9 @@ namespace Core
 
         public Point3 TopRight => Location.TranslateBy(Width, Height, Depth);
 
-        public long Size => checked (Width * (long)Height * Depth);
+        public long Size => checked(Width * (long)Height * Depth);
 
-        public Cuboid? Intersect(Cuboid other)
+        public Cuboid? Intersect(ICuboid other)
         {
             var start = Sse41.Max(Location.AsVector128(), other.Location.AsVector128());
             var end = Sse41.Min(TopRight.AsVector128(), other.TopRight.AsVector128());

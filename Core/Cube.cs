@@ -6,7 +6,7 @@ using Core;
 
 namespace Core
 {
-    public class Cube
+    public class Cube : ICuboid
     {
         public Point3 BottomLeft { get; set; }
 
@@ -23,6 +23,14 @@ namespace Core
         }
 
         public Point3 Center => BottomLeft.TranslateBy(SideLength / 2, SideLength / 2, SideLength / 2);
+
+        Point3 ICuboid.Location => BottomLeft;
+
+        int ICuboid.Width => SideLength;
+
+        int ICuboid.Height => SideLength;
+
+        int ICuboid.Depth => SideLength;
 
         public IEnumerable<ILineSegment> GetEdges()
         {
