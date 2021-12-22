@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.Intrinsics;
 
 namespace Core
 {
@@ -77,5 +78,9 @@ namespace Core
         public Point3 Inverse() => new(-X, -Y, -Z);
 
         public Vector3 ToVector() => new(X, Y, Z);
+
+        public Vector128<int> AsVector128() => Vector128.Create(X, Y, Z, 0);
+
+        public static Point3 FromVector128(Vector128<int> v) => new(v.GetElement(0), v.GetElement(1), v.GetElement(2));
     }
 }

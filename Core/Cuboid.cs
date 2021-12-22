@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace Core
 {
@@ -25,29 +27,23 @@ namespace Core
 
         public Cuboid? Intersect(Cuboid other)
         {
-            var tr = TopRight;
-            var otr = other.TopRight;
-            var x = IntersectLine(Location.X, tr.X, other.Location.X, otr.X);
-            var y = IntersectLine(Location.Y, tr.Y, other.Location.Y, otr.Y);
-            var z = IntersectLine(Location.Z, tr.Z, other.Location.Z, otr.Z);
+            var start = Sse41.Max(Location.AsVector128(), other.Location.AsVector128());
+            var end = Sse41.Min(TopRight.AsVector128(), other.TopRight.AsVector128());
 
-            if (!x.isValid || !y.isValid || !z.isValid)
-                return null;
-            return new Cuboid
+            var isvalid = Sse2.CompareLessThan(start, end).Equals(Vector128.Create(-1, -1, -1, 0));
+            if (isvalid)
             {
-                Location = new Point3(x.start, y.start, z.start),
-                Width = x.end - x.start,
-                Height = y.end - y.start,
-                Depth = z.end - z.start,
-            };
-
-            static (int start, int end, bool isValid) IntersectLine(int start1, int exend1, int start2, int exend2)
-            {
-                // End is excluusive!
-                var start = Math.Max(start1, start2);
-                var end = Math.Min(exend1, exend2);
-                return (start, end, start < end);
+                var diff = Sse2.Subtract(end, start);
+                return new Cuboid
+                {
+                    Location = Point3.FromVector128(start),
+                    Width = diff.GetElement(0),
+                    Height = diff.GetElement(1),
+                    Depth = diff.GetElement(2),
+                };
             }
+            else
+                return null;
         }
     }
 }
