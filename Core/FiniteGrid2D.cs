@@ -98,11 +98,25 @@ namespace Core
         public virtual TNode GetValueOrDefault(Point pos, TNode defaultValue)
             => _values.GetValueOrDefault(pos, defaultValue);
 
+        private static int Wrap(int coord, int limit) => ((coord % limit) + limit) % limit;
         public virtual TNode GetValueWraparound(Point p) => GetValueWraparound(p.X, p.Y);
         public virtual TNode GetValueWraparound(int x, int y)
         {
             var wrapped = new Point(Wrap(x, Width), Wrap(y, Height));
             return _values[wrapped];
+
+        }
+        public virtual (Point pos, TNode value) GetTupleWraparound(Point p) => GetTupleWraparound(p.X, p.Y);
+        public virtual (Point pos, TNode value) GetTupleWraparound(int x, int y)
+        {
+            var wrapped = new Point(Wrap(x, Width), Wrap(y, Height));
+            return (wrapped, _values[wrapped]);
+        }
+
+        public virtual void SetValueWraparound(Point p, TNode value)
+        {
+            var wrapped = new Point(Wrap(p.X, Width), Wrap(p.Y, Height));
+            _values[wrapped] = value;
 
             static int Wrap(int coord, int limit) => ((coord % limit) + limit) % limit;
         }
@@ -148,7 +162,11 @@ namespace Core
         public bool Contains((Point pos, TNode value) item)
             => _values.Contains(new KeyValuePair<Point, TNode>(item.pos, item.value));
         public void CopyTo((Point pos, TNode value)[] array, int arrayIndex)
-            => throw new NotImplementedException();
+        {
+            foreach (var kvp in _values)
+                array[arrayIndex++] = (kvp.Key, kvp.Value);
+        }
+
         public bool Remove((Point pos, TNode value) item) => _values.Remove(item.pos);
         public IEnumerator<(Point pos, TNode value)> GetEnumerator() => new EnumWrapper(_values);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
